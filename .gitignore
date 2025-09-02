@@ -1,4 +1,36 @@
 # Byte-compiled / optimized / DLL files
+venv/
+ENV/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test output
+*.log
+
+# Docker
+*.pid
+
+# Jupyter
+.ipynb_checkpoints
+
+# ffmpeg/ytdlp temp
+yt-audio-*/
+*.part
+*.temp
+*.webm
+*.m4a
+*.mp4
+*.wav
+*.mp3
+
+# Misc
+*.bak
+*.swp
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
