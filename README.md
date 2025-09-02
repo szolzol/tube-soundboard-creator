@@ -2,11 +2,17 @@
 
 YouTube Audio Extraction Agent & REST API
 
+
 ## Funkcionalitás
 
 - YouTube videókból tetszőleges időintervallum alapján audio szegmensek kinyerése
 - Támogatott formátumok: MP3, WAV
-- REST API (FastAPI) POST /extract végponttal
+- REST API (FastAPI):
+   - POST `/extract` – Egy szegmens kinyerése
+   - POST `/batch` – Több szegmens egyszerre
+   - GET `/status/{job_id}` – Feldolgozás státusz lekérdezése
+   - GET `/download/{file_id}` – Kész fájl letöltése
+   - WebSocket `/ws/progress/{job_id}` – Valós idejű státusz
 - Időbélyeg formátumok: `MM:SS`, `HH:MM:SS`, vagy másodperc (int)
 - Minőség-ellenőrzés, hibakezelés, temp file cleanup
 - Cloud-ready, platformfüggetlen (Docker, Linux, Windows, Mac, felhő)
@@ -23,11 +29,17 @@ YouTube Audio Extraction Agent & REST API
 
 YouTube Audio Extraction Agent & REST API
 
+
 ## Features
 
 - Extract audio segments from YouTube videos based on any time interval
 - Supported formats: MP3, WAV
-- REST API (FastAPI) with POST /extract endpoint
+- REST API (FastAPI):
+   - POST `/extract` – Extract a single segment
+   - POST `/batch` – Extract multiple segments in one call
+   - GET `/status/{job_id}` – Check progress/status of a job
+   - GET `/download/{file_id}` – Download finished audio file
+   - WebSocket `/ws/progress/{job_id}` – Real-time progress updates
 - Timestamp formats: `MM:SS`, `HH:MM:SS`, or seconds (int)
 - Quality check, error handling, temp file cleanup
 - Cloud-ready, platform-independent (Docker, Linux, Windows, Mac, cloud)
@@ -52,15 +64,77 @@ YouTube Audio Extraction Agent & REST API
    ```
    uvicorn main:app --host 0.0.0.0 --port 8000
    ```
-4. Send a POST request to the `/extract` endpoint:
-   ```json
-   {
-     "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-     "start_time": "00:10",
-     "end_time": "00:20",
-     "output_format": "mp3"
-   }
-   ```
+
+4. Example API usage:
+
+### POST /extract
+Extract a single segment:
+```json
+{
+   "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+   "start_time": "00:10",
+   "end_time": "00:20",
+   "output_format": "mp3"
+}
+```
+Response:
+```json
+{
+   "job_id": "...",
+   "status": "queued"
+}
+```
+
+### POST /batch
+Extract multiple segments:
+```json
+{
+   "requests": [
+      {
+         "youtube_url": "https://www.youtube.com/watch?v=coS2CdNd7Io",
+         "start_time": "0:38",
+         "end_time": "0:39",
+         "output_format": "mp3"
+      },
+      {
+         "youtube_url": "https://www.youtube.com/watch?v=mqLMPjeAWGQ",
+         "start_time": "1:00",
+         "end_time": "1:05",
+         "output_format": "mp3"
+      },
+      {
+         "youtube_url": "https://www.youtube.com/watch?v=coS2CdNd7Io",
+         "start_time": "2:10",
+         "end_time": "2:15",
+         "output_format": "wav"
+      }
+   ]
+}
+```
+Response:
+```json
+{
+   "job_ids": ["...", "...", "..."]
+}
+```
+
+### GET /status/{job_id}
+Check job status/progress:
+```json
+{
+   "job_id": "...",
+   "status": "done",
+   "progress": 100,
+   "file_id": "...",
+   ...
+}
+```
+
+### GET /download/{file_id}
+Download the finished audio file (binary response).
+
+### WebSocket /ws/progress/{job_id}
+Connect for real-time progress updates (JSON messages).
 
 ## Cloud / Docker Deployment
 
