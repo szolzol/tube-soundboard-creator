@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uvicorn
 import os
-from youtube_audio_test import extract_audio_segment
+from tube_audio_extractor import extract_audio_segment
 
 app = FastAPI()
 
