@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import ProgressBar from "./ProgressBar";
+import MobileSoundboardGrid from "./MobileSoundboardGrid";
 import { useAudioStorage } from "../hooks/useAudioStorage";
 import { useStorageQuota } from "../hooks/useStorageQuota";
 
@@ -6,7 +8,6 @@ export default function AudioManager() {
   const { saveAudio, getAllAudio, deleteAudio, getAudio } = useAudioStorage();
   const { usage, quota, percent } = useStorageQuota();
   const [audioFiles, setAudioFiles] = useState([]);
-  const [selected, setSelected] = useState(null);
   const [error, setError] = useState(null);
 
   // Új hang hozzáadása űrlap állapot
@@ -16,22 +17,53 @@ export default function AudioManager() {
   const [end, setEnd] = useState("00:00");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
+  // Progress bar state
+  const [progress, setProgress] = useState(0);
+  const [progressStatus, setProgressStatus] = useState("");
 
   useEffect(() => {
     getAllAudio().then(setAudioFiles).catch(setError);
   }, [getAllAudio]);
 
+  // Playing state for grid
+  const [playingId, setPlayingId] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
+
   const handlePlay = async (id) => {
+    setPlayingId(id);
     const file = await getAudio(id);
     if (file && file.data) {
-      const audio = new Audio(file.data);
+      let blob;
+      // If data is already a Blob, use it. If it's base64, convert.
+      if (file.data instanceof Blob) {
+        blob = file.data;
+      } else if (typeof file.data === "string") {
+        // base64 to Blob
+        const byteString = atob(file.data.split(",")[1] || file.data);
+        const mime = "audio/mp3";
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++)
+          ia[i] = byteString.charCodeAt(i);
+        blob = new Blob([ab], { type: mime });
+      }
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => {
+        setPlayingId(null);
+        URL.revokeObjectURL(url);
+      };
       audio.play();
+    } else {
+      setPlayingId(null);
     }
   };
 
   const handleDelete = async (id) => {
+    setLoadingId(id);
     await deleteAudio(id);
     setAudioFiles(await getAllAudio());
+    setLoadingId(null);
   };
 
   // YouTube hang hozzáadása
@@ -77,10 +109,13 @@ export default function AudioManager() {
       });
       if (!extractResp.ok) throw new Error("Hiba az indításnál");
       const { job_id } = await extractResp.json();
-      // 2. Poll /status/{job_id}
+      // 2. Poll /status/{job_id} with progress bar
       let status = "queued",
         file_id = null,
-        pollCount = 0;
+        pollCount = 0,
+        prog = 0;
+      setProgress(0);
+      setProgressStatus("Feldolgozás indítása...");
       while (status !== "done" && pollCount < 60) {
         await new Promise((res) => setTimeout(res, 2000));
         const statResp = await fetch(`/status/${job_id}`);
@@ -88,9 +123,20 @@ export default function AudioManager() {
         const stat = await statResp.json();
         status = stat.status;
         file_id = stat.file_id;
+        prog = stat.progress || 0;
+        setProgress(prog);
+        setProgressStatus(
+          status === "processing"
+            ? "Feldolgozás..."
+            : status === "queued"
+            ? "Várakozás..."
+            : status
+        );
         if (stat.error) throw new Error(stat.error);
         pollCount++;
       }
+      setProgress(100);
+      setProgressStatus("Kész!");
       if (status !== "done" || !file_id)
         throw new Error("Nem sikerült letölteni a hangot");
       // 3. GET /download/{file_id}
@@ -98,19 +144,20 @@ export default function AudioManager() {
       if (!dlResp.ok) throw new Error("Hiba a letöltésnél");
       const blob = await dlResp.blob();
       const id = `${ytUrl}_${start}_${end}`;
-      await saveAudio(
-        id,
-        URL.createObjectURL(blob),
-        { title, ytUrl, start, end },
-        blob.size
-      );
+      await saveAudio(id, blob, { title, ytUrl, start, end }, blob.size);
       setAudioFiles(await getAllAudio());
       setYtUrl("");
       setStart("00:00");
       setEnd("00:00");
       setTitle("");
+      setTimeout(() => {
+        setProgress(0);
+        setProgressStatus("");
+      }, 1200);
     } catch (err) {
       setError(err.message);
+      setProgress(0);
+      setProgressStatus("");
     } finally {
       setLoading(false);
     }
@@ -119,6 +166,9 @@ export default function AudioManager() {
   return (
     <div>
       <h2>Hangfájlok ({audioFiles.length})</h2>
+      {progress > 0 && (
+        <ProgressBar progress={progress} status={progressStatus} />
+      )}
       <form onSubmit={handleAdd} style={{ marginBottom: 16 }}>
         <input
           type="text"
@@ -162,22 +212,17 @@ export default function AudioManager() {
         {Math.round(quota / 1024 / 1024)} MB ({percent}%)
       </div>
       {error && <div style={{ color: "red" }}>Hiba: {String(error)}</div>}
-      <ul>
-        {audioFiles.map((f) => (
-          <li key={f.id}>
-            <b>{f.metadata?.title || f.id}</b> (
-            {Math.round((f.size || 0) / 1024)} KB)
-            <button onClick={() => handlePlay(f.id)} style={{ marginLeft: 8 }}>
-              Lejátszás
-            </button>
-            <button
-              onClick={() => handleDelete(f.id)}
-              style={{ marginLeft: 8 }}>
-              Törlés
-            </button>
-          </li>
-        ))}
-      </ul>
+      <MobileSoundboardGrid
+        sounds={audioFiles.map((f) => ({
+          id: f.id,
+          title: f.metadata?.title || f.id,
+          duration: f.metadata?.duration || null,
+          isPlaying: playingId === f.id,
+          isLoading: loadingId === f.id,
+        }))}
+        onPlay={handlePlay}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
