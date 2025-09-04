@@ -84,17 +84,6 @@ export default function AudioManager() {
     }
     const startSec = parseTime(start);
     const endSec = parseTime(end);
-    if (isNaN(startSec) || startSec < 0) {
-      setError("A kezdő időt MM:SS formátumban add meg (pl. 01:23)!");
-      return;
-    }
-    if (isNaN(endSec) || endSec <= startSec) {
-      setError(
-        "A végidő nagyobb kell legyen, mint a kezdő idő, MM:SS formátumban!"
-      );
-      return;
-    }
-    setLoading(true);
     try {
       // 1. POST /extract
       const extractResp = await fetch("/extract", {
@@ -164,65 +153,168 @@ export default function AudioManager() {
   };
 
   return (
-    <div>
-      <h2>Hangfájlok ({audioFiles.length})</h2>
+    <div style={styles.manager}>
       {progress > 0 && (
         <ProgressBar progress={progress} status={progressStatus} />
       )}
-      <form onSubmit={handleAdd} style={{ marginBottom: 16 }}>
+      <form onSubmit={handleAdd} style={styles.form}>
         <input
           type="text"
           placeholder="YouTube URL vagy ID"
           value={ytUrl}
           onChange={(e) => setYtUrl(e.target.value)}
           required
-          style={{ marginRight: 8 }}
+          style={styles.input}
         />
-        <input
-          type="text"
-          pattern="^\d{1,2}:\d{2}$"
-          placeholder="Kezdő (MM:SS)"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          required
-          style={{ width: 90, marginRight: 8 }}
-        />
-        <input
-          type="text"
-          pattern="^\d{1,2}:\d{2}$"
-          placeholder="Vége (MM:SS)"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          required
-          style={{ width: 90, marginRight: 8 }}
-        />
+        <div style={styles.rowInputs}>
+          <input
+            type="text"
+            pattern="^\d{1,2}:\d{2}$"
+            placeholder="Kezdő (MM:SS)"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            required
+            style={{ ...styles.input, width: 90 }}
+          />
+          <input
+            type="text"
+            pattern="^\d{1,2}:\d{2}$"
+            placeholder="Vége (MM:SS)"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+            required
+            style={{ ...styles.input, width: 90 }}
+          />
+        </div>
         <input
           type="text"
           placeholder="Cím"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          style={{ marginRight: 8 }}
+          style={styles.input}
         />
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} style={styles.button}>
           {loading ? "Letöltés..." : "Hozzáadás"}
         </button>
       </form>
-      <div>
-        Használt tárhely: {Math.round(usage / 1024 / 1024)} /{" "}
-        {Math.round(quota / 1024 / 1024)} MB ({percent}%)
+
+      {error && <div style={styles.error}>Hiba: {String(error)}</div>}
+      <div style={styles.gridWrap}>
+        <MobileSoundboardGrid
+          sounds={audioFiles.map((f) => ({
+            id: f.id,
+            title: f.metadata?.title || f.id,
+            duration: f.metadata?.duration || null,
+            isPlaying: playingId === f.id,
+            isLoading: loadingId === f.id,
+          }))}
+          onPlay={handlePlay}
+          onDelete={handleDelete}
+        />
       </div>
-      {error && <div style={{ color: "red" }}>Hiba: {String(error)}</div>}
-      <MobileSoundboardGrid
-        sounds={audioFiles.map((f) => ({
-          id: f.id,
-          title: f.metadata?.title || f.id,
-          duration: f.metadata?.duration || null,
-          isPlaying: playingId === f.id,
-          isLoading: loadingId === f.id,
-        }))}
-        onPlay={handlePlay}
-        onDelete={handleDelete}
-      />
+      <div style={styles.quota}>
+        <span style={styles.quotaLabel}>Használt tárhely:</span>
+        <span style={styles.quotaValue}>
+          {Math.round(usage / 1024 / 1024)} / {Math.round(quota / 1024 / 1024)}{" "}
+          MB
+        </span>
+        <span style={styles.quotaPercent}>({percent}%)</span>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  manager: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 32,
+  },
+  heading: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: 700,
+    margin: "0 0 18px 0",
+    textAlign: "center",
+    letterSpacing: "1px",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    width: "100%",
+    maxWidth: 400,
+    margin: "0 12px 18px 12px",
+    background: "var(--sb-form-bg, var(--sb-card, #232323))",
+    borderRadius: 12,
+    padding: "18px 16px",
+    boxShadow: "var(--sb-form-shadow, 0 2px 12px #0002)",
+    transition: "background 0.2s, box-shadow 0.2s",
+  },
+  input: {
+    padding: "10px 14px",
+    borderRadius: 7,
+    border: "none",
+    fontSize: 17,
+    background: "var(--sb-input-bg, #333)",
+    // ...existing code...
+    boxShadow: "0 1px 6px #0002",
+    outline: "none",
+    marginBottom: 0,
+    transition: "background 0.2s, color 0.2s",
+    color: "var(--sb-input-color, #fff)",
+  },
+  rowInputs: {
+    display: "flex",
+    gap: 10,
+    marginBottom: 0,
+  },
+  button: {
+    padding: "12px 0",
+    borderRadius: 7,
+    border: "none",
+    fontWeight: 700,
+    fontSize: 18,
+    background: "linear-gradient(90deg,#e53935,#e35d5b)",
+    color: "#fff",
+    boxShadow: "0 2px 8px #e5393533",
+    cursor: "pointer",
+    transition: "background 0.2s",
+    marginTop: 8,
+    letterSpacing: "1px",
+  },
+  quota: {
+    margin: "10px 0 0 0",
+    fontSize: 16,
+    color: "var(--sb-quota-label, #e53935)",
+    textAlign: "center",
+    display: "flex",
+    gap: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  quotaLabel: {
+    fontWeight: 500,
+    color: "var(--sb-quota-label, #e53935)",
+  },
+  quotaValue: {
+    fontWeight: 700,
+    color: "var(--sb-quota-value, #fff)",
+  },
+  quotaPercent: {
+    fontWeight: 400,
+    color: "var(--sb-quota-percent, #e53935)",
+  },
+  error: {
+    color: "var(--sb-error, #e53935)",
+    fontWeight: 600,
+    margin: "10px 0",
+    textAlign: "center",
+  },
+  gridWrap: {
+    width: "100%",
+    marginTop: 24,
+  },
+};

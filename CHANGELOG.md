@@ -16,17 +16,24 @@
 - Hibakezelés, minőség-ellenőrzés, temp file cleanup
 - Docker támogatás, platformfüggetlen futtatás
 
+
 ### Frontend (React + Vite PWA)
 
 - Modern, installálható webapp (PWA) React alapon
 - YouTube hangklip hozzáadása URL és időintervallum alapján
 - Hangklip lejátszás, törlés, helyi kezelés
-- [2025-09-05] Hangfájlok Blob-ként tárolva IndexedDB-ben: minden session-ben visszajátszható, nem tűnnek el újratöltés után
+- Hangfájlok Blob-ként tárolva IndexedDB-ben: minden session-ben visszajátszható, nem tűnnek el újratöltés után
 - Offline támogatás (service worker, offline.html)
 - IndexedDB-alapú helyi tárolás (50MB kvóta)
 - PWA install prompt, offline státusz kijelzés
 - API proxy a backendhez (`vite.config.js`)
 - Letisztult, strukturált komponens- és hook-architektúra
+- **2025-09-05:**
+  - Teljesen új, modern UI: horror soundboard stílus, kártya-alapú elrendezés, mobilbarát grid
+  - Világos/sötét mód váltó, dinamikus színpaletta CSS változókkal
+  - Minden komponens, gomb, form, quota, grid automatikusan vált színt a témával
+  - Mobilnézet: egyenlő margók, reszponzív form és gombok
+  - Hibák javítása: nested <button>, hydration, duplikált palette, nem frissülő színek
 
 ---
 
