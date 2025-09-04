@@ -126,16 +126,22 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
     t0 = time.time()
     progress(f"🔄 [STEP] {step}: Audio extraction and conversion (70%)")
     try:
+        # Hang normalizáció és kompresszió filterlánc
+        afilter = "loudnorm=I=-16:TP=-1.5:LRA=11,acompressor=threshold=-20dB:ratio=3:attack=20:release=250"
         process = (
             ffmpeg
             .input(downloaded_path, ss=start_sec, to=end_sec)
-            .output(output_path, format=output_ext)
+            .output(
+                output_path,
+                format=output_ext,
+                af=afilter
+            )
             .overwrite_output()
             .run(capture_stdout=True, capture_stderr=True)
         )
         t1 = time.time()
         size = os.path.getsize(output_path)/1024/1024 if os.path.exists(output_path) else 0
-        progress(f"✅ [COMPLETE] {step}: {t1-t0:.2f}s - {size:.2f}MB")
+        progress(f"✅ [COMPLETE] {step}: {t1-t0:.2f}s - {size:.2f}MB (normalizált)")
     except ffmpeg.Error as e:
         err_msg = e.stderr.decode(errors='ignore') if hasattr(e, 'stderr') else str(e)
         progress(f"❌ [ERROR] {step}: {err_msg}")
