@@ -1,3 +1,5 @@
+# ORM for database models
+SQLAlchemy>=2.0
 yt-dlp
 ffmpeg-python
 validators
