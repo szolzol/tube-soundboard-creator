@@ -2,7 +2,7 @@
 :root {
   --accent-red: #dc2626;
   --accent-red-hover: #ef4444;
-  --font-family: 'Cossette Titre', sans-serif;
+  --font-family: "Cossette Titre", sans-serif;
 }
 
 /* Dark theme (default) */
@@ -114,9 +114,16 @@ body.light-theme {
   transition: all 0.2s ease;
 }
 
+.theme-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .theme-toggle:hover {
-  background: var(--accent-red);
-  border-color: var(--accent-red);
   transform: translateY(-1px);
 }
 
@@ -174,15 +181,15 @@ body.light-theme {
     flex-direction: row;
     justify-content: space-between;
   }
-  
+
   .app-title {
     font-size: 1.4rem;
   }
-  
+
   .app-status {
     gap: 0.5rem;
   }
-  
+
   .theme-toggle {
     width: 36px;
     height: 36px;

@@ -199,7 +199,9 @@ function App() {
               onClick={() => setIsDarkMode(!isDarkMode)}
               aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
             >
-              {isDarkMode ? '☀️' : '🌙'}
+              <span className="theme-icon">
+                {isDarkMode ? '☀' : '☽'}
+              </span>
             </button>
             <OfflineIndicator />
             <InstallPrompt

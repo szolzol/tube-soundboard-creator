@@ -4,11 +4,12 @@ import "./AddSoundForm.css";
 function AddSoundForm({ onAddSound }) {
   const [ytUrl, setYtUrl] = useState("");
   const [start, setStart] = useState("00:00");
-  const [end, setEnd] = useState("00:00");
+  const [end, setEnd] = useState("00:01");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressStatus, setProgressStatus] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Helper function to parse time string to seconds
   const parseTimeToSeconds = (timeStr) => {
@@ -33,6 +34,31 @@ function AddSoundForm({ onAddSound }) {
     const totalSeconds = parseTimeToSeconds(timeStr);
     const newSeconds = Math.max(0, totalSeconds + increment);
     return formatSecondsToTime(newSeconds);
+  };
+
+  // Dynamic time validation functions
+  const handleStartTimeChange = (newStartTime) => {
+    setStart(newStartTime);
+    const startSeconds = parseTimeToSeconds(newStartTime);
+    const endSeconds = parseTimeToSeconds(end);
+    
+    // If end time is not at least 1 second after start time, adjust it
+    if (endSeconds <= startSeconds) {
+      const newEndTime = formatSecondsToTime(startSeconds + 1);
+      setEnd(newEndTime);
+    }
+  };
+
+  const handleEndTimeChange = (newEndTime) => {
+    setEnd(newEndTime);
+    const startSeconds = parseTimeToSeconds(start);
+    const endSeconds = parseTimeToSeconds(newEndTime);
+    
+    // If end time is not at least 1 second after start time, adjust start time
+    if (endSeconds <= startSeconds) {
+      const newStartTime = formatSecondsToTime(Math.max(0, endSeconds - 1));
+      setStart(newStartTime);
+    }
   };
 
   const parseTime = (str) => {
@@ -153,7 +179,7 @@ function AddSoundForm({ onAddSound }) {
       // Reset form
       setYtUrl("");
       setStart("00:00");
-      setEnd("00:00");
+      setEnd("00:01");
       setTitle("");
       setProgressStatus("Complete!");
 
@@ -172,6 +198,18 @@ function AddSoundForm({ onAddSound }) {
 
   return (
     <div className="add-sound-form">
+      <div className="form-header">
+        <h2 className="form-title">Add New Sound</h2>
+        <button
+          type="button"
+          className="collapse-btn"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Expand form" : "Collapse form"}
+        >
+          <span className={`collapse-arrow ${isCollapsed ? 'collapsed' : ''}`}>▼</span>
+        </button>
+      </div>
+
       {progress > 0 && (
         <div className="progress-container">
           <div className="progress-bar">
@@ -181,7 +219,8 @@ function AddSoundForm({ onAddSound }) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="form">
+      <div className={`form-content ${isCollapsed ? 'collapsed' : ''}`}>
+        <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
           <label htmlFor="ytUrl" className="form-label">
             YouTube URL or ID
@@ -199,10 +238,15 @@ function AddSoundForm({ onAddSound }) {
         </div>
 
         <div className="form-row">
-          <div className="form-group">
+          <div className="labels-row">
             <label htmlFor="start" className="form-label">
               Start Time
             </label>
+            <label htmlFor="end" className="form-label">
+              End Time
+            </label>
+          </div>
+          <div className="inputs-row">
             <div className="time-input-container">
               <input
                 id="start"
@@ -211,7 +255,7 @@ function AddSoundForm({ onAddSound }) {
                 placeholder="MM:SS"
                 pattern="^\d{1,2}:\d{2}$"
                 value={start}
-                onChange={(e) => setStart(e.target.value)}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
                 required
                 disabled={loading}
               />
@@ -219,7 +263,7 @@ function AddSoundForm({ onAddSound }) {
                 <button
                   type="button"
                   className="time-btn time-btn-up"
-                  onClick={() => setStart(adjustTime(start, 1))}
+                  onClick={() => handleStartTimeChange(adjustTime(start, 1))}
                   disabled={loading}
                   aria-label="Increase start time by 1 second"
                 >
@@ -228,7 +272,7 @@ function AddSoundForm({ onAddSound }) {
                 <button
                   type="button"
                   className="time-btn time-btn-down"
-                  onClick={() => setStart(adjustTime(start, -1))}
+                  onClick={() => handleStartTimeChange(adjustTime(start, -1))}
                   disabled={loading}
                   aria-label="Decrease start time by 1 second"
                 >
@@ -236,12 +280,6 @@ function AddSoundForm({ onAddSound }) {
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="end" className="form-label">
-              End Time
-            </label>
             <div className="time-input-container">
               <input
                 id="end"
@@ -250,7 +288,7 @@ function AddSoundForm({ onAddSound }) {
                 placeholder="MM:SS"
                 pattern="^\d{1,2}:\d{2}$"
                 value={end}
-                onChange={(e) => setEnd(e.target.value)}
+                onChange={(e) => handleEndTimeChange(e.target.value)}
                 required
                 disabled={loading}
               />
@@ -258,7 +296,7 @@ function AddSoundForm({ onAddSound }) {
                 <button
                   type="button"
                   className="time-btn time-btn-up"
-                  onClick={() => setEnd(adjustTime(end, 1))}
+                  onClick={() => handleEndTimeChange(adjustTime(end, 1))}
                   disabled={loading}
                   aria-label="Increase end time by 1 second"
                 >
@@ -267,7 +305,7 @@ function AddSoundForm({ onAddSound }) {
                 <button
                   type="button"
                   className="time-btn time-btn-down"
-                  onClick={() => setEnd(adjustTime(end, -1))}
+                  onClick={() => handleEndTimeChange(adjustTime(end, -1))}
                   disabled={loading}
                   aria-label="Decrease end time by 1 second"
                 >
@@ -297,6 +335,7 @@ function AddSoundForm({ onAddSound }) {
           {loading ? "Processing..." : "Add Sound"}
         </button>
       </form>
+      </div>
     </div>
   );
 }
