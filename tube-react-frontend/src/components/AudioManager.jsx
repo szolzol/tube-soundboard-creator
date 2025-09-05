@@ -194,11 +194,11 @@ export default function AudioManager() {
           style={styles.input}
         />
         <button type="submit" disabled={loading} style={styles.button}>
-          {loading ? "Letöltés..." : "Hozzáadás"}
+          {loading ? "Download..." : "Add to Soundboard"}
         </button>
       </form>
 
-      {error && <div style={styles.error}>Hiba: {String(error)}</div>}
+      {error && <div style={styles.error}>Error: {String(error)}</div>}
       <div style={styles.gridWrap}>
         <MobileSoundboardGrid
           sounds={audioFiles.map((f) => ({
@@ -213,7 +213,7 @@ export default function AudioManager() {
         />
       </div>
       <div style={styles.quota}>
-        <span style={styles.quotaLabel}>Használt tárhely:</span>
+        <span style={styles.quotaLabel}>Quota:</span>
         <span style={styles.quotaValue}>
           {Math.round(usage / 1024 / 1024)} / {Math.round(quota / 1024 / 1024)}{" "}
           MB
@@ -247,11 +247,11 @@ const styles = {
     width: "100%",
     maxWidth: 400,
     margin: "0 12px 18px 12px",
-    background: "var(--sb-form-bg, var(--sb-card, #232323))",
     borderRadius: 12,
     padding: "18px 16px",
-    boxShadow: "var(--sb-form-shadow, 0 2px 12px #0002)",
+    boxShadow: "none",
     transition: "background 0.2s, box-shadow 0.2s",
+    background: "none",
   },
   input: {
     padding: "10px 14px",

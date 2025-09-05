@@ -34,7 +34,13 @@ function injectGlobalBg() {
     }
     @media (max-width: 600px) {
       .sb-title { font-size: 28px; font-weight: 700; margin: 0 0 18px 0; }
-      .sb-card { padding: 18px 8px !important; max-width: 98vw !important; }
+      .sb-card {
+        padding: 18px 8px !important;
+        max-width: 98vw !important;
+        border: none !important;
+        box-shadow: 0 2px 16px #0004 !important;
+        background: var(--sb-card);
+      }
       .sb-app { padding: 18px 0 !important; }
       .sb-footer { padding: 16px 0 8px 0 !important; }
     }
@@ -142,28 +148,39 @@ function App() {
     <div
       className="sb-app"
       style={{ ...styles.app, background: "var(--sb-bg)" }}>
-      <OfflineIndicator />
-      <InstallPrompt
-        deferredPrompt={deferredPrompt}
-        promptInstall={promptInstall}
-        isInstalled={isInstalled}
-      />
-      <h1 className="sb-title">YouTube Soundboard</h1>
-      <div
-        className="sb-card"
-        style={{ ...styles.card, background: "var(--sb-card)" }}>
-        <AudioManager />
+      <header className="sb-header" style={styles.header}>
+        <div style={styles.themeSwitchRow}>
+          <ThemeSwitch theme={theme} setTheme={setTheme} />
+        </div>
+      </header>
+      <div style={styles.mainContent}>
+        <OfflineIndicator />
+        <InstallPrompt
+          deferredPrompt={deferredPrompt}
+          promptInstall={promptInstall}
+          isInstalled={isInstalled}
+        />
+        <h1 className="sb-title">YouTube Soundboard</h1>
+        <div
+          className="sb-card"
+          style={{ ...styles.card, background: "var(--sb-card)" }}>
+          <AudioManager />
+        </div>
+        <footer className="sb-footer" style={styles.footer}></footer>
       </div>
-      <footer className="sb-footer" style={styles.footer}>
-        <ThemeSwitch theme={theme} setTheme={setTheme} />
-      </footer>
     </div>
   );
 }
 
 function ThemeSwitch({ theme, setTheme }) {
   return (
-    <div style={styles.themeSwitch}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: 8,
+        alignItems: "center",
+      }}>
       <button
         className="sb-theme-switch-btn"
         style={
@@ -267,14 +284,54 @@ const styles = {
     width: "100vw",
     boxSizing: "border-box",
   },
+  header: {
+    width: "100vw",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    zIndex: 100,
+    background: "var(--sb-bg)",
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    height: "56px",
+    boxShadow: "0 2px 8px #0002",
+    borderBottom: "1px solid var(--sb-grid-border, #333)",
+  },
+  themeSwitchRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    marginLeft: 18,
+    marginTop: 0,
+    alignItems: "center",
+    height: "100%",
+  },
+  mainContent: {
+    width: "100vw",
+    maxWidth: "100vw",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginTop: "72px", // header + gap
+    padding: "0 12px",
+    minHeight: "calc(100vh - 72px)",
+    boxSizing: "border-box",
+  },
   card: {
     borderRadius: 18,
     boxShadow: "0 4px 32px #000c",
     padding: "32px 24px",
-    maxWidth: 600,
+    maxWidth: "100%",
     width: "100%",
-    margin: "0 auto",
+    margin: "0 auto 24px auto",
     transition: "background 0.2s",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    boxSizing: "border-box",
   },
   footer: {
     width: "100vw",

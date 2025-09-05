@@ -20,7 +20,6 @@
 - Hibakezelés, minőség-ellenőrzés, temp file cleanup
 - Docker támogatás, platformfüggetlen futtatás
 
-
 ### Frontend (React + Vite PWA)
 
 - Modern, installálható webapp (PWA) React alapon
