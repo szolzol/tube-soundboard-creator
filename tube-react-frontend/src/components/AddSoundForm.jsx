@@ -19,7 +19,7 @@ function AddSoundForm({ onAddSound }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!ytUrl.trim()) {
       alert("Please enter a YouTube URL or ID");
       return;
@@ -27,7 +27,7 @@ function AddSoundForm({ onAddSound }) {
 
     const startSec = parseTime(start);
     const endSec = parseTime(end);
-    
+
     if (isNaN(startSec) || isNaN(endSec)) {
       alert("Please enter valid time format (MM:SS)");
       return;
@@ -44,7 +44,7 @@ function AddSoundForm({ onAddSound }) {
 
     try {
       // 1. POST /extract
-      const extractResp = await fetch("http://localhost:8000/extract", {
+      const extractResp = await fetch("/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,21 +66,24 @@ function AddSoundForm({ onAddSound }) {
 
       while (status !== "done" && pollCount < 60) {
         await new Promise((res) => setTimeout(res, 2000));
-        const statResp = await fetch(`http://localhost:8000/status/${job_id}`);
+        const statResp = await fetch(`/status/${job_id}`);
         if (!statResp.ok) throw new Error("Failed to check status");
-        
+
         const stat = await statResp.json();
         status = stat.status;
         file_id = stat.file_id;
         jobResult = stat.result;
         const prog = stat.progress || 0;
-        
+
         setProgress(prog);
         setProgressStatus(
-          status === "processing" ? "Processing audio..." :
-          status === "queued" ? "Waiting in queue..." : status
+          status === "processing"
+            ? "Processing audio..."
+            : status === "queued"
+            ? "Waiting in queue..."
+            : status
         );
-        
+
         if (stat.error) throw new Error(stat.error);
         pollCount++;
       }
@@ -93,33 +96,33 @@ function AddSoundForm({ onAddSound }) {
       setProgressStatus("Downloading...");
 
       // 3. GET /download/{file_id}
-      const dlResp = await fetch(`http://localhost:8000/download/${file_id}`);
+      const dlResp = await fetch(`/download/${file_id}`);
       if (!dlResp.ok) throw new Error("Failed to download file");
-      
+
       const blob = await dlResp.blob();
-      
+
       // Get image URLs if available
-      const thumbnailUrl = `http://localhost:8000/thumbnail/${file_id}`;
-      const screenshotUrl = `http://localhost:8000/screenshot/${file_id}`;
-      
+      const thumbnailUrl = `/thumbnail/${file_id}`;
+      const screenshotUrl = `/screenshot/${file_id}`;
+
       // Extract video title from job result
       const videoTitle = jobResult?.video_title || "Untitled";
       console.log("DEBUG: Job result:", jobResult);
       console.log("DEBUG: Video title extracted:", videoTitle);
-      
+
       // Call parent handler
       await onAddSound({
         blob,
-        metadata: { 
+        metadata: {
           title: title.trim() || videoTitle, // Use custom title or fallback to video title
-          ytUrl, 
-          start, 
+          ytUrl,
+          start,
           end,
           thumbnailUrl: thumbnailUrl,
           screenshotUrl: screenshotUrl,
           file_id: file_id,
-          video_title: videoTitle
-        }
+          video_title: videoTitle,
+        },
       });
 
       // Reset form
@@ -128,12 +131,11 @@ function AddSoundForm({ onAddSound }) {
       setEnd("00:00");
       setTitle("");
       setProgressStatus("Complete!");
-      
+
       setTimeout(() => {
         setProgress(0);
         setProgressStatus("");
       }, 1500);
-
     } catch (error) {
       alert(`Error: ${error.message}`);
       setProgress(0);
@@ -145,15 +147,10 @@ function AddSoundForm({ onAddSound }) {
 
   return (
     <div className="add-sound-form">
-      <h2 className="form-title">Add New Sound</h2>
-      
       {progress > 0 && (
         <div className="progress-container">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progress}%` }}
-            />
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
           </div>
           <div className="progress-status">{progressStatus}</div>
         </div>
@@ -227,11 +224,7 @@ function AddSoundForm({ onAddSound }) {
           />
         </div>
 
-        <button 
-          type="submit" 
-          className="submit-button"
-          disabled={loading}
-        >
+        <button type="submit" className="submit-button" disabled={loading}>
           {loading ? "Processing..." : "Add Sound"}
         </button>
       </form>

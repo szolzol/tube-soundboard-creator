@@ -10,6 +10,8 @@ export default defineConfig({
       "/extract": "http://localhost:8000",
       "/status": "http://localhost:8000",
       "/download": "http://localhost:8000",
+      "/thumbnail": "http://localhost:8000",
+      "/screenshot": "http://localhost:8000",
       "/session": "http://localhost:8000",
     },
   },

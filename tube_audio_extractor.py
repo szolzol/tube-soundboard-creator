@@ -42,11 +42,24 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
     step = "VALIDATE"
     t0 = time.time()
     progress(f"🔄 [STEP] {step}: URL validation (0%)")
-    if not validators.url(youtube_url):
-        progress(f"❌ [ERROR] {step}: Invalid YouTube URL")
-        raise ValueError("Invalid YouTube URL!")
+    
+    # Enhanced YouTube URL validation to support both youtube.com and youtu.be formats
+    import re
+    youtube_patterns = [
+        r'https?://(?:www\.)?youtube\.com/watch\?v=[\w-]+',
+        r'https?://(?:www\.)?youtu\.be/[\w-]+',
+        r'https?://(?:m\.)?youtube\.com/watch\?v=[\w-]+',
+        r'https?://youtube\.com/watch\?v=[\w-]+'
+    ]
+    
+    is_youtube_url = any(re.match(pattern, youtube_url) for pattern in youtube_patterns)
+    
+    if not validators.url(youtube_url) or not is_youtube_url:
+        progress(f"❌ [ERROR] {step}: Invalid YouTube URL - must be youtube.com or youtu.be")
+        raise ValueError("Invalid YouTube URL! Must be a valid YouTube or youtu.be URL")
+    
     t1 = time.time()
-    progress(f"✅ [COMPLETE] {step}: {t1-t0:.2f}s - N/A")
+    progress(f"✅ [COMPLETE] {step}: {t1-t0:.2f}s - URL format validated")
 
     step = "DOWNLOAD"
     t0 = time.time()

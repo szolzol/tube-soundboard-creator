@@ -203,10 +203,8 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  background: rgba(0, 0, 0, 0.7);
   padding: 8px;
   border-radius: 8px;
-  backdrop-filter: blur(4px);
 }
 
 .sound-title {
