@@ -50,6 +50,10 @@
   gap: 1.5rem;
 }
 
+.form-row .form-group {
+  flex: 1;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -117,10 +121,64 @@
 }
 
 .submit-button:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+/* Time input with controls */
+.time-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.time-input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.time-controls {
+  position: absolute;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.time-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 20px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.time-btn:hover:not(:disabled) {
+  background: var(--accent-red);
+  color: white;
+  border-color: var(--accent-red);
+}
+
+.time-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.time-btn-up {
+  border-radius: 3px 3px 0 0;
+}
+
+.time-btn-down {
+  border-radius: 0 0 3px 3px;
 }
 
 /* Mobile responsiveness */

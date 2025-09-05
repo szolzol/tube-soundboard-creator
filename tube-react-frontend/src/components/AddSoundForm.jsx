@@ -10,6 +10,31 @@ function AddSoundForm({ onAddSound }) {
   const [progress, setProgress] = useState(0);
   const [progressStatus, setProgressStatus] = useState("");
 
+  // Helper function to parse time string to seconds
+  const parseTimeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
+  // Helper function to format seconds to MM:SS
+  const formatSecondsToTime = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Increment/decrement time functions
+  const adjustTime = (timeStr, increment) => {
+    const totalSeconds = parseTimeToSeconds(timeStr);
+    const newSeconds = Math.max(0, totalSeconds + increment);
+    return formatSecondsToTime(newSeconds);
+  };
+
   const parseTime = (str) => {
     if (!/^\d{1,2}:\d{2}$/.test(str)) return NaN;
     const [m, s] = str.split(":").map(Number);
@@ -178,34 +203,78 @@ function AddSoundForm({ onAddSound }) {
             <label htmlFor="start" className="form-label">
               Start Time
             </label>
-            <input
-              id="start"
-              type="text"
-              className="form-input"
-              placeholder="MM:SS"
-              pattern="^\d{1,2}:\d{2}$"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <div className="time-input-container">
+              <input
+                id="start"
+                type="text"
+                className="form-input time-input"
+                placeholder="MM:SS"
+                pattern="^\d{1,2}:\d{2}$"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <div className="time-controls">
+                <button
+                  type="button"
+                  className="time-btn time-btn-up"
+                  onClick={() => setStart(adjustTime(start, 1))}
+                  disabled={loading}
+                  aria-label="Increase start time by 1 second"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  className="time-btn time-btn-down"
+                  onClick={() => setStart(adjustTime(start, -1))}
+                  disabled={loading}
+                  aria-label="Decrease start time by 1 second"
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="end" className="form-label">
               End Time
             </label>
-            <input
-              id="end"
-              type="text"
-              className="form-input"
-              placeholder="MM:SS"
-              pattern="^\d{1,2}:\d{2}$"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <div className="time-input-container">
+              <input
+                id="end"
+                type="text"
+                className="form-input time-input"
+                placeholder="MM:SS"
+                pattern="^\d{1,2}:\d{2}$"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <div className="time-controls">
+                <button
+                  type="button"
+                  className="time-btn time-btn-up"
+                  onClick={() => setEnd(adjustTime(end, 1))}
+                  disabled={loading}
+                  aria-label="Increase end time by 1 second"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  className="time-btn time-btn-down"
+                  onClick={() => setEnd(adjustTime(end, -1))}
+                  disabled={loading}
+                  aria-label="Decrease end time by 1 second"
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

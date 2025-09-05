@@ -85,18 +85,12 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
 
     const newSounds = [...sounds];
     
-    // Simple approach: move item to new position
-    if (draggedItem < dropIndex) {
-      // Moving right: insert after the target position
-      const draggedSound = newSounds[draggedItem];
-      newSounds.splice(draggedItem, 1); // Remove from old position
-      newSounds.splice(dropIndex - 1, 0, draggedSound); // Insert at new position (adjusted for removal)
-    } else {
-      // Moving left: insert before the target position  
-      const draggedSound = newSounds[draggedItem];
-      newSounds.splice(draggedItem, 1); // Remove from old position
-      newSounds.splice(dropIndex, 0, draggedSound); // Insert at new position
-    }
+    // Swap mechanic: exchange positions of dragged item and drop target
+    const draggedSound = newSounds[draggedItem];
+    const targetSound = newSounds[dropIndex];
+    
+    newSounds[draggedItem] = targetSound;
+    newSounds[dropIndex] = draggedSound;
     
     onReorder(newSounds);
     handleDragEnd();
@@ -309,6 +303,11 @@ function SoundButton({
         />
       )}
 
+      {/* Play icon - bottom left corner */}
+      {!sound.isPlaying && !sound.isLoading && (
+        <div className="play-icon" />
+      )}
+
       {/* Sound content */}
       <div className="sound-content">
         {isEditing ? (
@@ -326,13 +325,10 @@ function SoundButton({
           <div 
             className="sound-title" 
             onClick={handleTitleClick}
-            title="Click to rename"
+            title={sound.title}
           >
-            {truncateTitle(sound.title || "Untitled")}
+            {truncateTitle(sound.title)}
           </div>
-        )}
-        {sound.duration && (
-          <div className="sound-duration">{sound.duration}</div>
         )}
       </div>
 
