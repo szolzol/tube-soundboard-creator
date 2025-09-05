@@ -67,7 +67,9 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .form-row .labels-row {
@@ -91,6 +93,8 @@
 
 .form-row .time-input-container {
   grid-row: 2;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .form-label {
@@ -173,6 +177,9 @@
 .time-input {
   flex: 1;
   padding-right: 40px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .time-controls {
