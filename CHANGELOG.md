@@ -1,5 +1,35 @@
 # Changelog
 
+## 2025-09-05 – Enhanced Soundboard Features & Bug Fixes
+
+### Frontend (React + Vite PWA)
+
+- **Click-to-rename functionality**: Sound button titles can now be edited inline with keyboard controls
+- **Bidirectional drag & drop**: Fixed drag and drop to work correctly in both left-to-right and right-to-left directions
+- **YouTube video thumbnails**: Added thumbnail and screenshot background images to sound buttons with opacity effects
+- **Automatic video titles**: Sound buttons now use original YouTube video titles as default when no custom title is provided
+- **Enhanced error handling**: Added ThumbnailBackground component with proper fallback from thumbnail to screenshot
+- **Debug improvements**: Added comprehensive logging for image loading and title extraction
+
+### Backend (FastAPI, Python)
+
+- **Image extraction**: Integrated YouTube thumbnail download and video screenshot extraction at clip start timestamps
+- **Video metadata extraction**: Added support for extracting and storing video title, uploader, duration, and view count
+- **New API endpoints**: 
+  - `GET /thumbnail/{file_id}` – Serve YouTube thumbnail images
+  - `GET /screenshot/{file_id}` – Serve video screenshot images
+- **Enhanced job results**: Job status now includes video metadata for frontend consumption
+- **Debug logging**: Added comprehensive debug output for image extraction and serving
+
+### Bug Fixes
+
+- Fixed drag and drop insertion index calculation for proper reordering
+- Fixed spacebar event propagation during title editing to prevent accidental playback
+- Fixed video title extraction and default title fallback logic
+- Enhanced image display with proper error handling and fallback mechanisms
+
+---
+
 ## 2025-09-05 – Modern UI, Mobile & Theme Overhaul
 
 ### Frontend (React + Vite PWA)

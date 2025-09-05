@@ -61,6 +61,7 @@ function AddSoundForm({ onAddSound }) {
       // 2. Poll /status/{job_id}
       let status = "queued";
       let file_id = null;
+      let jobResult = null;
       let pollCount = 0;
 
       while (status !== "done" && pollCount < 60) {
@@ -71,6 +72,7 @@ function AddSoundForm({ onAddSound }) {
         const stat = await statResp.json();
         status = stat.status;
         file_id = stat.file_id;
+        jobResult = stat.result;
         const prog = stat.progress || 0;
         
         setProgress(prog);
@@ -96,18 +98,27 @@ function AddSoundForm({ onAddSound }) {
       
       const blob = await dlResp.blob();
       
-      // Get thumbnail URL if available
+      // Get image URLs if available
       const thumbnailUrl = `http://localhost:8000/thumbnail/${file_id}`;
+      const screenshotUrl = `http://localhost:8000/screenshot/${file_id}`;
+      
+      // Extract video title from job result
+      const videoTitle = jobResult?.video_title || "Untitled";
+      console.log("DEBUG: Job result:", jobResult);
+      console.log("DEBUG: Video title extracted:", videoTitle);
       
       // Call parent handler
       await onAddSound({
         blob,
         metadata: { 
-          title, 
+          title: title.trim() || videoTitle, // Use custom title or fallback to video title
           ytUrl, 
           start, 
           end,
-          thumbnailUrl: thumbnailUrl
+          thumbnailUrl: thumbnailUrl,
+          screenshotUrl: screenshotUrl,
+          file_id: file_id,
+          video_title: videoTitle
         }
       });
 

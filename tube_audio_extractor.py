@@ -29,6 +29,7 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
     - youtube_url: YouTube videó URL
     - start_time, end_time: timestamp (str/int)
     - output_format: 'mp3' vagy 'wav'
+    Returns: (audio_path, screenshot_path, thumbnail_path, temp_dir)
     """
     import yt_dlp
     import validators
@@ -79,6 +80,28 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
             print(f"Views: {info.get('view_count'):,}")
             print(f"URL: {youtube_url}")
             print("-----------------------\n")
+            
+            # Extract YouTube thumbnail
+            thumbnail_path = None
+            if info.get('thumbnail'):
+                step_thumb = "THUMBNAIL"
+                t0_thumb = time.time()
+                progress(f"🔄 [STEP] {step_thumb}: Downloading YouTube thumbnail (15%)")
+                try:
+                    import urllib.request
+                    thumbnail_url = info.get('thumbnail')
+                    thumbnail_path = os.path.join(temp_dir, "thumbnail.jpg")
+                    print(f"DEBUG: Downloading thumbnail from: {thumbnail_url}")
+                    print(f"DEBUG: Saving thumbnail to: {thumbnail_path}")
+                    urllib.request.urlretrieve(thumbnail_url, thumbnail_path)
+                    t1_thumb = time.time()
+                    thumb_size = os.path.getsize(thumbnail_path)/1024 if os.path.exists(thumbnail_path) else 0
+                    print(f"DEBUG: Thumbnail file exists: {os.path.exists(thumbnail_path)}, size: {thumb_size:.2f}KB")
+                    progress(f"✅ [COMPLETE] {step_thumb}: {t1_thumb-t0_thumb:.2f}s - {thumb_size:.2f}KB")
+                except Exception as e:
+                    print(f"DEBUG: Thumbnail extraction failed: {e}")
+                    progress(f"⚠️ [WARNING] {step_thumb}: Failed to download thumbnail: {e}")
+                    thumbnail_path = None
     except Exception as e:
         progress(f"❌ [ERROR] {step}: {e}")
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -110,7 +133,43 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise ValueError(f"Timestamp error: {e}")
 
-    # 4. Audio segment cutting & format conversion (ffmpeg streaming)
+    # 4. Screenshot extraction at start timestamp
+    step = "SCREENSHOT"
+    t0 = time.time()
+    progress(f"🔄 [STEP] {step}: Extracting screenshot at start timestamp (40%)")
+    screenshot_path = None
+    try:
+        screenshot_path = os.path.join(temp_dir, "screenshot.jpg")
+        print(f"DEBUG: Extracting screenshot from: {downloaded_path}")
+        print(f"DEBUG: Screenshot timestamp: {start_sec}s")
+        print(f"DEBUG: Saving screenshot to: {screenshot_path}")
+        process = (
+            ffmpeg
+            .input(downloaded_path, ss=start_sec)
+            .output(
+                screenshot_path,
+                vframes=1,
+                format='image2',
+                vf='scale=640:360'  # Standard resolution for screenshots
+            )
+            .overwrite_output()
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+        t1 = time.time()
+        screenshot_size = os.path.getsize(screenshot_path)/1024 if os.path.exists(screenshot_path) else 0
+        print(f"DEBUG: Screenshot file exists: {os.path.exists(screenshot_path)}, size: {screenshot_size:.2f}KB")
+        progress(f"✅ [COMPLETE] {step}: {t1-t0:.2f}s - {screenshot_size:.2f}KB")
+    except ffmpeg.Error as e:
+        err_msg = e.stderr.decode(errors='ignore') if hasattr(e, 'stderr') else str(e)
+        print(f"DEBUG: Screenshot extraction failed: {err_msg}")
+        progress(f"⚠️ [WARNING] {step}: Failed to extract screenshot: {err_msg}")
+        screenshot_path = None
+    except Exception as e:
+        print(f"DEBUG: Screenshot extraction failed: {e}")
+        progress(f"⚠️ [WARNING] {step}: Failed to extract screenshot: {e}")
+        screenshot_path = None
+
+    # 5. Audio segment cutting & format conversion (ffmpeg streaming)
     step = "FORMAT"
     t0 = time.time()
     progress(f"🔄 [STEP] {step}: Output format validation (50%)")
@@ -152,8 +211,14 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise RuntimeError(f"FFmpeg segmentation/conversion error: {e}")
 
-    # 5. File output (return path)
-    return output_path, temp_dir
+    # 6. File output (return paths and metadata)
+    video_metadata = {
+        'title': info.get('title', 'Untitled'),
+        'duration': info.get('duration', 0),
+        'uploader': info.get('uploader', 'Unknown'),
+        'view_count': info.get('view_count', 0)
+    }
+    return output_path, screenshot_path, thumbnail_path, video_metadata, temp_dir
 
 # --- Példa hívás ---
 if __name__ == "__main__":
@@ -171,7 +236,7 @@ if __name__ == "__main__":
     end = args.end
     fmt = args.fmt
     try:
-        out_path, tmp_dir = extract_audio_segment(url, start, end, fmt)
+        out_path, screenshot_path, thumbnail_path, video_metadata, tmp_dir = extract_audio_segment(url, start, end, fmt)
         # --- OUTPUT MANAGEMENT ---
         os.makedirs("output", exist_ok=True)
         # Extract video ID from URL
@@ -181,10 +246,27 @@ if __name__ == "__main__":
         def ts_to_str(ts):
             if isinstance(ts, int): return str(ts)
             return str(ts).replace(":", "-")
+        
+        # Copy audio file
         out_name = f"test_{video_id}_{ts_to_str(start)}-{ts_to_str(end)}.{fmt}"
         final_path = os.path.join("output", out_name)
         shutil.copy2(out_path, final_path)
-        print(f"✅ Extraction successful: {final_path}")
+        print(f"✅ Audio extraction successful: {final_path}")
+        
+        # Copy screenshot if available
+        if screenshot_path and os.path.exists(screenshot_path):
+            screenshot_name = f"test_{video_id}_{ts_to_str(start)}-{ts_to_str(end)}_screenshot.jpg"
+            screenshot_final = os.path.join("output", screenshot_name)
+            shutil.copy2(screenshot_path, screenshot_final)
+            print(f"✅ Screenshot saved: {screenshot_final}")
+        
+        # Copy thumbnail if available
+        if thumbnail_path and os.path.exists(thumbnail_path):
+            thumbnail_name = f"test_{video_id}_thumbnail.jpg"
+            thumbnail_final = os.path.join("output", thumbnail_name)
+            shutil.copy2(thumbnail_path, thumbnail_final)
+            print(f"✅ Thumbnail saved: {thumbnail_final}")
+        
         shutil.rmtree(tmp_dir, ignore_errors=True)
     except Exception as e:
         print(f"❌ Error: {e}")

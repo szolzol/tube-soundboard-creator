@@ -9,11 +9,15 @@
 ### Backend (FastAPI, Python)
 
 - YouTube audio szegmensek kinyerése tetszőleges időintervallum alapján (yt-dlp, ffmpeg)
+- **Image extraction**: YouTube thumbnail download and video screenshot extraction at clip timestamps
+- **Video metadata extraction**: Extracts and stores video title, uploader, duration, and view count
 - REST API végpontok:
   - `POST /extract` – Egy szegmens kinyerése
   - `POST /batch` – Több szegmens egyszerre
   - `GET /status/{job_id}` – Feldolgozás státusz lekérdezése
   - `GET /download/{file_id}` – Kész fájl letöltése
+  - `GET /thumbnail/{file_id}` – **NEW**: Serve YouTube thumbnail images
+  - `GET /screenshot/{file_id}` – **NEW**: Serve video screenshot images
   - `GET /session` – Szekciókezelés
   - `WebSocket /ws/progress/{job_id}` – Valós idejű státusz
 - Időbélyeg formátumok támogatása: `MM:SS`, `HH:MM:SS`, másodperc (int)
@@ -31,7 +35,12 @@
 - PWA install prompt, offline státusz kijelzés
 - API proxy a backendhez (`vite.config.js`)
 - Letisztult, strukturált komponens- és hook-architektúra
-- **2025-09-05:**
+- **Enhanced Features:**
+  - **Click-to-rename functionality**: Sound button titles can be edited inline with keyboard controls
+  - **Bidirectional drag & drop**: Sound buttons can be reordered by dragging in any direction
+  - **YouTube video thumbnails**: Sound buttons display video thumbnails and screenshots as background images
+  - **Automatic video titles**: Uses original YouTube video titles as default when no custom title is provided
+  - **Enhanced error handling**: ThumbnailBackground component with proper fallback mechanisms
   - Teljesen új, modern UI: horror soundboard stílus, kártya-alapú elrendezés, mobilbarát grid
   - Világos/sötét mód váltó, dinamikus színpaletta CSS változókkal
   - Minden komponens, gomb, form, quota, grid automatikusan vált színt a témával
@@ -132,6 +141,8 @@ npm run preview
 
 - `src/App.jsx`: Main app, integrates all UI components
 - `src/components/AudioManager.jsx`: Add, play, and delete audio clips; interacts with backend and IndexedDB
+- `src/components/SoundboardGrid.jsx`: **NEW**: Enhanced sound button grid with drag & drop, inline editing, and thumbnail backgrounds
+- `src/components/AddSoundForm.jsx`: **ENHANCED**: Form for adding sounds with video title extraction
 - `src/components/InstallPrompt.jsx`: Shows PWA install prompt
 - `src/components/OfflineIndicator.jsx`: Shows offline status
 - `src/hooks/useAudioStorage.js`: Audio file CRUD in IndexedDB

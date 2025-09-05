@@ -1,5 +1,49 @@
-import React, { useState, useRef } from "react";
-import "./SoundboardGrid.css";
+import React, { useState, useRef, useEffect } from 'react';
+import './SoundboardGrid.css';
+
+// Component to handle thumbnail/screenshot background with fallback
+const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
+  const [imageUrl, setImageUrl] = useState(thumbnailUrl || screenshotUrl);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!thumbnailUrl && !screenshotUrl) return;
+    
+    // Try thumbnail first, fallback to screenshot
+    const testImage = new Image();
+    testImage.onload = () => {
+      setImageUrl(thumbnailUrl || screenshotUrl);
+      setHasError(false);
+    };
+    testImage.onerror = () => {
+      console.log('Thumbnail failed, trying screenshot:', thumbnailUrl);
+      if (screenshotUrl && thumbnailUrl !== screenshotUrl) {
+        const testScreenshot = new Image();
+        testScreenshot.onload = () => {
+          setImageUrl(screenshotUrl);
+          setHasError(false);
+        };
+        testScreenshot.onerror = () => {
+          console.log('Screenshot also failed:', screenshotUrl);
+          setHasError(true);
+        };
+        testScreenshot.src = screenshotUrl;
+      } else {
+        setHasError(true);
+      }
+    };
+    testImage.src = thumbnailUrl || screenshotUrl;
+  }, [thumbnailUrl, screenshotUrl]);
+
+  if (hasError) return null;
+
+  return (
+    <div 
+      className="sound-thumbnail"
+      style={{ backgroundImage: `url(${imageUrl})` }}
+    />
+  );
+};
 
 // Utility function to truncate title with character limit
 const truncateTitle = (title, maxLength = 50) => {
@@ -40,14 +84,19 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
     }
 
     const newSounds = [...sounds];
-    const draggedSound = newSounds[draggedItem];
     
-    // Remove dragged item
-    newSounds.splice(draggedItem, 1);
-    
-    // Insert at new position
-    const insertIndex = draggedItem < dropIndex ? dropIndex - 1 : dropIndex;
-    newSounds.splice(insertIndex, 0, draggedSound);
+    // Simple approach: move item to new position
+    if (draggedItem < dropIndex) {
+      // Moving right: insert after the target position
+      const draggedSound = newSounds[draggedItem];
+      newSounds.splice(draggedItem, 1); // Remove from old position
+      newSounds.splice(dropIndex - 1, 0, draggedSound); // Insert at new position (adjusted for removal)
+    } else {
+      // Moving left: insert before the target position  
+      const draggedSound = newSounds[draggedItem];
+      newSounds.splice(draggedItem, 1); // Remove from old position
+      newSounds.splice(dropIndex, 0, draggedSound); // Insert at new position
+    }
     
     onReorder(newSounds);
     handleDragEnd();
@@ -176,7 +225,7 @@ function SoundButton({
   };
 
   const handleKeyDown = (e) => {
-    if ((e.key === "Enter" || e.key === " ") && !sound.isLoading) {
+    if ((e.key === "Enter" || e.key === " ") && !sound.isLoading && !isEditing) {
       e.preventDefault();
       onPlay(sound.id);
     }
@@ -197,6 +246,7 @@ function SoundButton({
   };
 
   const handleTitleKeyDown = (e) => {
+    e.stopPropagation(); // Prevent event bubbling to parent
     if (e.key === 'Enter') {
       handleTitleSubmit(e);
     } else if (e.key === 'Escape') {
@@ -252,10 +302,10 @@ function SoundButton({
       )}
 
       {/* Thumbnail background */}
-      {sound.thumbnailUrl && (
-        <div 
-          className="sound-thumbnail"
-          style={{ backgroundImage: `url(${sound.thumbnailUrl})` }}
+      {(sound.thumbnailUrl || sound.screenshotUrl) && (
+        <ThumbnailBackground 
+          thumbnailUrl={sound.thumbnailUrl}
+          screenshotUrl={sound.screenshotUrl}
         />
       )}
 

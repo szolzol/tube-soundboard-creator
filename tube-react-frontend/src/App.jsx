@@ -228,7 +228,7 @@ function App() {
               duration: sound.metadata?.duration || null,
               isPlaying: playingIds.has(sound.id),
               isLoading: loadingId === sound.id,
-              thumbnailUrl: sound.metadata?.thumbnailUrl || null,
+              thumbnailUrl: sound.metadata?.thumbnailUrl || sound.metadata?.screenshotUrl || null,
             }))}
             onPlay={handlePlay}
             onDelete={handleDelete}

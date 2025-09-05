@@ -51,16 +51,27 @@ def run_extraction(job_id, req: ExtractionRequest, session_id=None):
     try:
         jobs[job_id]["status"] = "running"
         jobs[job_id]["progress"] = 10
-        output_path, temp_dir = extract_audio_segment(
+        output_path, screenshot_path, thumbnail_path, video_metadata, temp_dir = extract_audio_segment(
             req.youtube_url, req.start_time, req.end_time, req.output_format
         )
         file_id = str(uuid.uuid4())
-        files[file_id] = {"path": output_path, "metadata": {
-            "youtube_url": req.youtube_url,
-            "start_time": req.start_time,
-            "end_time": req.end_time,
-            "output_format": req.output_format
-        }}
+        files[file_id] = {
+            "path": output_path, 
+            "screenshot_path": screenshot_path,
+            "thumbnail_path": thumbnail_path, 
+            "metadata": {
+                "youtube_url": req.youtube_url,
+                "start_time": req.start_time,
+                "end_time": req.end_time,
+                "output_format": req.output_format,
+                "screenshot_path": screenshot_path,
+                "thumbnail_path": thumbnail_path,
+                "video_title": video_metadata.get('title', 'Untitled'),
+                "video_uploader": video_metadata.get('uploader', 'Unknown'),
+                "video_duration": video_metadata.get('duration', 0),
+                "video_view_count": video_metadata.get('view_count', 0)
+            }
+        }
         jobs[job_id]["status"] = "done"
         jobs[job_id]["progress"] = 100
         jobs[job_id]["file_id"] = file_id
@@ -158,6 +169,36 @@ def download_file(file_id: str):
     path = file["path"]
     fmt = file["metadata"]["output_format"]
     return FileResponse(path, media_type=f"audio/{fmt}", filename=os.path.basename(path))
+
+@app.get("/thumbnail/{file_id}")
+def get_thumbnail(file_id: str):
+    print(f"DEBUG: Thumbnail request for file_id: {file_id}")
+    file = files.get(file_id)
+    if not file:
+        print(f"DEBUG: File not found in registry: {file_id}")
+        raise HTTPException(status_code=404, detail="File not found")
+    thumbnail_path = file.get("thumbnail_path")
+    print(f"DEBUG: Thumbnail path: {thumbnail_path}")
+    print(f"DEBUG: Thumbnail exists: {os.path.exists(thumbnail_path) if thumbnail_path else False}")
+    if not thumbnail_path or not os.path.exists(thumbnail_path):
+        print(f"DEBUG: Thumbnail not found or doesn't exist")
+        raise HTTPException(status_code=404, detail="Thumbnail not found")
+    return FileResponse(thumbnail_path, media_type="image/jpeg", filename=f"thumbnail_{file_id}.jpg")
+
+@app.get("/screenshot/{file_id}")
+def get_screenshot(file_id: str):
+    print(f"DEBUG: Screenshot request for file_id: {file_id}")
+    file = files.get(file_id)
+    if not file:
+        print(f"DEBUG: File not found in registry: {file_id}")
+        raise HTTPException(status_code=404, detail="File not found")
+    screenshot_path = file.get("screenshot_path")
+    print(f"DEBUG: Screenshot path: {screenshot_path}")
+    print(f"DEBUG: Screenshot exists: {os.path.exists(screenshot_path) if screenshot_path else False}")
+    if not screenshot_path or not os.path.exists(screenshot_path):
+        print(f"DEBUG: Screenshot not found or doesn't exist")
+        raise HTTPException(status_code=404, detail="Screenshot not found")
+    return FileResponse(screenshot_path, media_type="image/jpeg", filename=f"screenshot_{file_id}.jpg")
 
 # --- WebSocket for real-time progress ---
 # --- WebSocket for real-time progress ---
