@@ -1,42 +1,189 @@
-#root {
-  max-width: 1280px;
+/* Horror-inspired theme soundboard with light/dark mode support */
+:root {
+  --accent-red: #dc2626;
+  --accent-red-hover: #ef4444;
+}
+
+/* Dark theme (default) */
+.dark-theme {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+  --border-color: #333333;
+  --shadow-light: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.7);
+}
+
+/* Light theme */
+.light-theme {
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f5f5f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+  --border-color: #e0e0e0;
+  --shadow-light: rgba(0, 0, 0, 0.08);
+  --shadow-heavy: rgba(0, 0, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* Theme-specific body styles */
+body.dark-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.light-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px var(--shadow-light);
+  width: 100%;
+}
+
+.app-header-content {
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.app-status {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.theme-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  transform: translateY(-1px);
+}
+
+.app-main {
+  flex: 1;
   padding: 2rem;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.error-message {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
   text-align: center;
+  font-weight: 500;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.storage-info {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border-color);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.storage-label {
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+}
+
+.storage-usage {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.storage-percent {
+  color: var(--accent-red);
+  font-weight: 500;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .app-header-content {
+    padding: 0 1rem;
+    flex-direction: column;
+    gap: 1rem;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .app-title {
+    font-size: 1.5rem;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  
+  .app-main {
+    padding: 1rem;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
 }

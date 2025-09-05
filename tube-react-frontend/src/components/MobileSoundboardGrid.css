@@ -1,0 +1,261 @@
+/* MobileSoundboardGrid - Modern horror-inspired soundboard styles */
+
+/* Empty state when no sounds are available */
+.soundboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  min-height: 200px;
+  color: var(--sb-btn-color, #fff);
+  text-align: center;
+}
+
+.soundboard-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.soundboard-empty-text {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--sb-btn-color, #fff);
+}
+
+.soundboard-empty-subtext {
+  font-size: 14px;
+  opacity: 0.7;
+  color: var(--sb-btn-color, #fff);
+}
+
+/* Main grid container - responsive mobile-first design */
+.soundboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-family: "Montserrat", Arial, sans-serif;
+}
+
+/* Mobile: 2 columns */
+@media (max-width: 480px) {
+  .soundboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+/* Tablet: 3 columns */
+@media (min-width: 481px) and (max-width: 768px) {
+  .soundboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+/* Desktop: 4+ columns */
+@media (min-width: 769px) {
+  .soundboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px;
+    padding: 20px;
+  }
+}
+
+.soundboard-grid-item {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Sound button - clean rectangular design with horror aesthetic */
+.soundboard-button {
+  background: var(--sb-btn-bg, linear-gradient(180deg, #232323 80%, #2c2c2c 100%));
+  color: var(--sb-btn-color, #fff);
+  border: 2px solid var(--sb-btn-border, #333);
+  border-radius: 12px;
+  width: 100%;
+  min-height: 80px;
+  height: auto;
+  aspect-ratio: 1.2 / 1; /* Slightly rectangular for better text display */
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 12px;
+  position: relative;
+  box-shadow: var(--sb-grid-shadow, 0 2px 8px #0006), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  letter-spacing: 0.3px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Hover effect */
+.soundboard-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sb-grid-shadow, 0 4px 12px #0008), 0 0 0 1px rgba(255,255,255,0.1) inset;
+  border-color: var(--sb-btn-playing, #e53935);
+}
+
+/* Active/pressed state */
+.soundboard-button:active {
+  transform: translateY(0px);
+  transition: all 0.1s;
+}
+
+/* Delete button - top-right corner */
+.soundboard-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+  z-index: 3;
+  font-size: 14px;
+}
+
+.soundboard-delete-btn:hover {
+  opacity: 1;
+  background: var(--sb-btn-playing, #e53935);
+  transform: scale(1.1);
+}
+
+.soundboard-delete-icon {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+}
+
+/* Playing state - red accent border and background */
+.soundboard-button.playing {
+  border: 2px solid var(--sb-btn-playing, #e53935);
+  background: var(--sb-btn-playing-bg, linear-gradient(180deg, #2a1818 80%, #3a2222 100%));
+  color: var(--sb-btn-playing-color, #ffeaea);
+  box-shadow: 0 0 0 1px var(--sb-btn-playing, #e53935), 0 4px 16px rgba(229, 57, 53, 0.3);
+  transform: scale(1.02);
+}
+
+/* Loading state - reduced opacity and disabled interaction */
+.soundboard-button.loading {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Sound title - truncated with ellipsis */
+.soundboard-title {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  margin-bottom: auto;
+  padding-right: 32px; /* Space for delete button */
+}
+
+/* Duration badge - bottom right corner */
+.soundboard-duration {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.2px;
+}
+
+/* Loading spinner */
+.soundboard-spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.soundboard-spinner-dot {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: 2px solid var(--sb-btn-playing, #e53935);
+  border-radius: 50%;
+  animation: soundboard-spin 1s linear infinite;
+}
+
+/* Spinner animation */
+@keyframes soundboard-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .soundboard-button {
+    min-height: 70px;
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+  
+  .soundboard-title {
+    font-size: 14px;
+    padding-right: 28px;
+  }
+  
+  .soundboard-delete-btn {
+    width: 22px;
+    height: 22px;
+    top: 6px;
+    right: 6px;
+  }
+  
+  .soundboard-delete-icon {
+    font-size: 16px;
+  }
+  
+  .soundboard-duration {
+    font-size: 10px;
+    padding: 1px 4px;
+    right: 8px;
+    bottom: 8px;
+  }
+}
