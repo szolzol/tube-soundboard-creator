@@ -28,8 +28,17 @@ export default function AudioManager() {
   // Playing state for grid
   const [playingId, setPlayingId] = useState(null);
   const [loadingId, setLoadingId] = useState(null);
+  const [currentAudio, setCurrentAudio] = useState(null);
 
   const handlePlay = async (id) => {
+    // Stop current audio if playing
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentAudio(null);
+      setPlayingId(null);
+    }
+
     setPlayingId(id);
     const file = await getAudio(id);
     if (file && file.data) {
@@ -51,8 +60,10 @@ export default function AudioManager() {
       const audio = new Audio(url);
       audio.onended = () => {
         setPlayingId(null);
+        setCurrentAudio(null);
         URL.revokeObjectURL(url);
       };
+      setCurrentAudio(audio);
       audio.play();
     } else {
       setPlayingId(null);
@@ -60,6 +71,14 @@ export default function AudioManager() {
   };
 
   const handleDelete = async (id) => {
+    // If the sound being deleted is currently playing, stop it immediately
+    if (playingId === id && currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentAudio(null);
+      setPlayingId(null);
+    }
+
     setLoadingId(id);
     await deleteAudio(id);
     setAudioFiles(await getAllAudio());

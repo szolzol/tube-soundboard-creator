@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './SoundboardGrid.css';
+import React, { useState, useRef, useEffect } from "react";
+import "./SoundboardGrid.css";
 
 // Component to handle thumbnail/screenshot background with fallback
 const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
@@ -8,7 +8,7 @@ const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
 
   useEffect(() => {
     if (!thumbnailUrl && !screenshotUrl) return;
-    
+
     // Try thumbnail first, fallback to screenshot
     const testImage = new Image();
     testImage.onload = () => {
@@ -16,7 +16,7 @@ const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
       setHasError(false);
     };
     testImage.onerror = () => {
-      console.log('Thumbnail failed, trying screenshot:', thumbnailUrl);
+      console.log("Thumbnail failed, trying screenshot:", thumbnailUrl);
       if (screenshotUrl && thumbnailUrl !== screenshotUrl) {
         const testScreenshot = new Image();
         testScreenshot.onload = () => {
@@ -24,7 +24,7 @@ const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
           setHasError(false);
         };
         testScreenshot.onerror = () => {
-          console.log('Screenshot also failed:', screenshotUrl);
+          console.log("Screenshot also failed:", screenshotUrl);
           setHasError(true);
         };
         testScreenshot.src = screenshotUrl;
@@ -38,7 +38,7 @@ const ThumbnailBackground = ({ thumbnailUrl, screenshotUrl }) => {
   if (hasError) return null;
 
   return (
-    <div 
+    <div
       className="sound-thumbnail"
       style={{ backgroundImage: `url(${imageUrl})` }}
     />
@@ -59,13 +59,13 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
   const isDragging = useRef(false);
   const handleDragStart = (e, index) => {
     setDraggedItem(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', e.target);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", e.target);
   };
 
   const handleDragOver = (e, index) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
     setDragOverIndex(index);
   };
 
@@ -77,21 +77,21 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
 
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
-    
+
     if (draggedItem === null || draggedItem === dropIndex) {
       handleDragEnd();
       return;
     }
 
     const newSounds = [...sounds];
-    
+
     // Swap mechanic: exchange positions of dragged item and drop target
     const draggedSound = newSounds[draggedItem];
     const targetSound = newSounds[dropIndex];
-    
+
     newSounds[draggedItem] = targetSound;
     newSounds[dropIndex] = draggedSound;
-    
+
     onReorder(newSounds);
     handleDragEnd();
   };
@@ -100,7 +100,7 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
   const handleTouchStart = (e, index) => {
     const touch = e.touches[0];
     dragStartPos.current = { x: touch.clientX, y: touch.clientY };
-    
+
     longPressTimer.current = setTimeout(() => {
       isDragging.current = true;
       setDraggedItem(index);
@@ -116,7 +116,7 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
       const touch = e.touches[0];
       const deltaX = Math.abs(touch.clientX - dragStartPos.current.x);
       const deltaY = Math.abs(touch.clientY - dragStartPos.current.y);
-      
+
       // Cancel long press if moved too much
       if (deltaX > 10 || deltaY > 10) {
         clearTimeout(longPressTimer.current);
@@ -127,10 +127,10 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
     e.preventDefault();
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    const soundButton = element?.closest('.sound-button');
-    
+    const soundButton = element?.closest(".sound-button");
+
     if (soundButton) {
-      const allButtons = Array.from(document.querySelectorAll('.sound-button'));
+      const allButtons = Array.from(document.querySelectorAll(".sound-button"));
       const overIndex = allButtons.indexOf(soundButton);
       if (overIndex !== -1 && overIndex !== index) {
         setDragOverIndex(overIndex);
@@ -140,8 +140,12 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
 
   const handleTouchEnd = (e, index) => {
     clearTimeout(longPressTimer.current);
-    
-    if (isDragging.current && dragOverIndex !== null && dragOverIndex !== index) {
+
+    if (
+      isDragging.current &&
+      dragOverIndex !== null &&
+      dragOverIndex !== index
+    ) {
       handleDrop(e, dragOverIndex);
     } else {
       handleDragEnd();
@@ -153,7 +157,9 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
       <div className="soundboard-empty">
         <div className="empty-icon">🎵</div>
         <h3 className="empty-title">No sounds yet</h3>
-        <p className="empty-subtitle">Add your first YouTube audio clip above</p>
+        <p className="empty-subtitle">
+          Add your first YouTube audio clip above
+        </p>
       </div>
     );
   }
@@ -183,11 +189,11 @@ function SoundboardGrid({ sounds, onPlay, onDelete, onReorder, onRename }) {
   );
 }
 
-function SoundButton({ 
-  sound, 
-  index, 
-  onPlay, 
-  onDelete, 
+function SoundButton({
+  sound,
+  index,
+  onPlay,
+  onDelete,
   onRename,
   onDragStart,
   onDragOver,
@@ -197,7 +203,7 @@ function SoundButton({
   onTouchMove,
   onTouchEnd,
   isDragged,
-  isDragOver
+  isDragOver,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(sound.title || "Untitled");
@@ -219,7 +225,11 @@ function SoundButton({
   };
 
   const handleKeyDown = (e) => {
-    if ((e.key === "Enter" || e.key === " ") && !sound.isLoading && !isEditing) {
+    if (
+      (e.key === "Enter" || e.key === " ") &&
+      !sound.isLoading &&
+      !isEditing
+    ) {
       e.preventDefault();
       onPlay(sound.id);
     }
@@ -241,9 +251,9 @@ function SoundButton({
 
   const handleTitleKeyDown = (e) => {
     e.stopPropagation(); // Prevent event bubbling to parent
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleTitleSubmit(e);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setEditTitle(sound.title || "Untitled");
       setIsEditing(false);
     }
@@ -255,15 +265,9 @@ function SoundButton({
 
   return (
     <div
-      className={`sound-button ${
-        sound.isPlaying ? "playing" : ""
-      } ${
+      className={`sound-button ${sound.isPlaying ? "playing" : ""} ${
         sound.isLoading ? "loading" : ""
-      } ${
-        isDragged ? "dragged" : ""
-      } ${
-        isDragOver ? "drag-over" : ""
-      }`}
+      } ${isDragged ? "dragged" : ""} ${isDragOver ? "drag-over" : ""}`}
       draggable={!sound.isLoading}
       onClick={handlePlay}
       onKeyDown={handleKeyDown}
@@ -276,15 +280,13 @@ function SoundButton({
       onTouchEnd={(e) => onTouchEnd(e, index)}
       tabIndex={0}
       role="button"
-      aria-label={`Play ${sound.title}`}
-    >
+      aria-label={`Play ${sound.title}`}>
       {/* Delete button */}
       <button
         className="delete-button"
         onClick={handleDelete}
         aria-label={`Delete ${sound.title}`}
-        tabIndex={-1}
-      >
+        tabIndex={-1}>
         ×
       </button>
 
@@ -297,16 +299,14 @@ function SoundButton({
 
       {/* Thumbnail background */}
       {(sound.thumbnailUrl || sound.screenshotUrl) && (
-        <ThumbnailBackground 
+        <ThumbnailBackground
           thumbnailUrl={sound.thumbnailUrl}
           screenshotUrl={sound.screenshotUrl}
         />
       )}
 
       {/* Play icon - bottom left corner */}
-      {!sound.isPlaying && !sound.isLoading && (
-        <div className="play-icon" />
-      )}
+      {!sound.isPlaying && !sound.isLoading && <div className="play-icon" />}
 
       {/* Sound content */}
       <div className="sound-content">
@@ -322,11 +322,10 @@ function SoundButton({
             maxLength={50}
           />
         ) : (
-          <div 
-            className="sound-title" 
+          <div
+            className="sound-title"
             onClick={handleTitleClick}
-            title={sound.title}
-          >
+            title={sound.title}>
             {truncateTitle(sound.title)}
           </div>
         )}
@@ -338,6 +337,21 @@ function SoundButton({
           <div className="wave"></div>
           <div className="wave"></div>
           <div className="wave"></div>
+        </div>
+      )}
+
+      {/* Countdown display - shows total duration when not playing, remaining time when playing */}
+      {sound.countdown && (
+        <div className="countdown-display">{sound.countdown}</div>
+      )}
+
+      {/* Progress bar - only when playing */}
+      {sound.isPlaying && (
+        <div className="progress-bar-container">
+          <div
+            className="progress-bar"
+            style={{ width: `${sound.progress || 0}%` }}
+          />
         </div>
       )}
     </div>

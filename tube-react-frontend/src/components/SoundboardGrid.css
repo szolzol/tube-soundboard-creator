@@ -448,3 +448,51 @@
     right: 6px;
   }
 }
+
+/* Countdown display */
+.countdown-display {
+  position: absolute;
+  bottom: 12px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #e53935;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(229, 57, 53, 0.3);
+}
+
+/* Progress bar - thicker red bottom border */
+.progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px; /* Made thicker: was 4px */
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e53935, #ff5722);
+  border-radius: 0 0 10px 10px;
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 12px rgba(255, 4, 0, 0.4); /* Enhanced glow */
+  position: relative;
+}
+
+.progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px; /* Made thicker: was 2px */
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+}

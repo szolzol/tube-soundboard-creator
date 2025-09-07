@@ -4,15 +4,26 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/storage', 'firebase/firestore']
+        }
+      }
+    }
+  },
   server: {
     host: true,
     proxy: {
-      "/extract": "http://localhost:8000",
-      "/status": "http://localhost:8000",
-      "/download": "http://localhost:8000",
-      "/thumbnail": "http://localhost:8000",
-      "/screenshot": "http://localhost:8000",
-      "/session": "http://localhost:8000",
+      "/api": {
+        target: "http://localhost:8001",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, "")
+      }
     },
   },
 });

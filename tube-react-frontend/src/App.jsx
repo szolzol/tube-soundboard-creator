@@ -12,17 +12,19 @@ function App() {
   const { saveAudio, getAllAudio, deleteAudio, getAudio } = useAudioStorage();
   const { usage, quota, percent } = useStorageQuota();
   const { deferredPrompt, promptInstall, isInstalled } = usePWA();
-  
+
   const [sounds, setSounds] = useState([]);
   const [playingIds, setPlayingIds] = useState(new Set());
   const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeAudios, setActiveAudios] = useState(new Map());
+  const [audioProgress, setAudioProgress] = useState(new Map());
+  const [audioCountdown, setAudioCountdown] = useState(new Map());
 
   // Apply theme to body element
   useEffect(() => {
-    document.body.className = isDarkMode ? 'dark-theme' : 'light-theme';
+    document.body.className = isDarkMode ? "dark-theme" : "light-theme";
   }, [isDarkMode]);
 
   const loadSounds = useCallback(async () => {
@@ -48,14 +50,26 @@ function App() {
         audio.pause();
         audio.currentTime = 0;
       }
-      
+
       const newPlayingIds = new Set(playingIds);
       newPlayingIds.delete(id);
       setPlayingIds(newPlayingIds);
-      
+
       const newActiveAudios = new Map(activeAudios);
       newActiveAudios.delete(id);
       setActiveAudios(newActiveAudios);
+
+      setAudioProgress((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+
+      setAudioCountdown((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
       return;
     }
 
@@ -79,32 +93,52 @@ function App() {
             ia[i] = byteString.charCodeAt(i);
           blob = new Blob([ab], { type: mime });
         }
-        
+
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
-        
+
         audio.onended = () => {
-          setPlayingIds(prev => {
+          setPlayingIds((prev) => {
             const newSet = new Set(prev);
             newSet.delete(id);
             return newSet;
           });
-          setActiveAudios(prev => {
+          setActiveAudios((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+          });
+          setAudioProgress((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+          });
+          setAudioCountdown((prev) => {
             const newMap = new Map(prev);
             newMap.delete(id);
             return newMap;
           });
           URL.revokeObjectURL(url);
         };
-        
+
         audio.onpause = () => {
           if (audio.currentTime === 0) {
-            setPlayingIds(prev => {
+            setPlayingIds((prev) => {
               const newSet = new Set(prev);
               newSet.delete(id);
               return newSet;
             });
-            setActiveAudios(prev => {
+            setActiveAudios((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(id);
+              return newMap;
+            });
+            setAudioProgress((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(id);
+              return newMap;
+            });
+            setAudioCountdown((prev) => {
               const newMap = new Map(prev);
               newMap.delete(id);
               return newMap;
@@ -112,14 +146,30 @@ function App() {
             URL.revokeObjectURL(url);
           }
         };
-        
-        setActiveAudios(prev => new Map(prev).set(id, audio));
+
+        // Track progress and countdown
+        audio.ontimeupdate = () => {
+          if (audio.duration > 0) {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            const remainingTime = audio.duration - audio.currentTime;
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = Math.floor(remainingTime % 60);
+            const countdown = `${minutes.toString().padStart(2, "0")}:${seconds
+              .toString()
+              .padStart(2, "0")}`;
+
+            setAudioProgress((prev) => new Map(prev).set(id, progress));
+            setAudioCountdown((prev) => new Map(prev).set(id, countdown));
+          }
+        };
+
+        setActiveAudios((prev) => new Map(prev).set(id, audio));
         audio.play();
       }
     } catch (error) {
       console.error("Failed to play sound:", error);
       setError("Failed to play sound");
-      setPlayingIds(prev => {
+      setPlayingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -128,6 +178,36 @@ function App() {
   };
 
   const handleDelete = async (id) => {
+    // Stop playback if the sound being deleted is currently playing
+    if (playingIds.has(id)) {
+      const audio = activeAudios.get(id);
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      // Clear from all playing-related states
+      setPlayingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+      setActiveAudios((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+      setAudioProgress((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+      setAudioCountdown((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+    }
+
     setLoadingId(id);
     try {
       await deleteAudio(id);
@@ -155,30 +235,34 @@ function App() {
 
   const handleReorderSounds = (newOrder) => {
     // Map the reordered display objects back to original sound objects
-    const reorderedSounds = newOrder.map(displaySound => {
-      return sounds.find(originalSound => originalSound.id === displaySound.id);
-    }).filter(Boolean);
+    const reorderedSounds = newOrder
+      .map((displaySound) => {
+        return sounds.find(
+          (originalSound) => originalSound.id === displaySound.id
+        );
+      })
+      .filter(Boolean);
     setSounds(reorderedSounds);
   };
 
   const handleRenameSound = async (id, newTitle) => {
     try {
       // Update the sound metadata in IndexedDB
-      const soundIndex = sounds.findIndex(sound => sound.id === id);
+      const soundIndex = sounds.findIndex((sound) => sound.id === id);
       if (soundIndex !== -1) {
         const updatedSounds = [...sounds];
         updatedSounds[soundIndex] = {
           ...updatedSounds[soundIndex],
           metadata: {
             ...updatedSounds[soundIndex].metadata,
-            title: newTitle
-          }
+            title: newTitle,
+          },
         };
-        
+
         // Save updated metadata back to IndexedDB
         const sound = updatedSounds[soundIndex];
         await saveAudio(sound.id, sound.data, sound.metadata, sound.size);
-        
+
         // Update local state
         setSounds(updatedSounds);
       }
@@ -189,19 +273,16 @@ function App() {
   };
 
   return (
-    <div className={`app ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+    <div className={`app ${isDarkMode ? "dark-theme" : "light-theme"}`}>
       <header className="app-header">
         <div className="app-header-content">
           <h1 className="app-title">Tube Soundboard Creator</h1>
           <div className="app-status">
-            <button 
+            <button
               className="theme-toggle"
               onClick={() => setIsDarkMode(!isDarkMode)}
-              aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
-            >
-              <span className="theme-icon">
-                {isDarkMode ? '☀' : '☽'}
-              </span>
+              aria-label={`Switch to ${isDarkMode ? "light" : "dark"} mode`}>
+              <span className="theme-icon">{isDarkMode ? "☀" : "☽"}</span>
             </button>
             <OfflineIndicator />
             <InstallPrompt
@@ -216,22 +297,45 @@ function App() {
       <main className="app-main">
         <div className="app-container">
           <AddSoundForm onAddSound={handleAddSound} />
-          
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+
+          {error && <div className="error-message">{error}</div>}
 
           <SoundboardGrid
-            sounds={sounds.map((sound) => ({
-              id: sound.id,
-              title: sound.metadata?.title || sound.id,
-              duration: sound.metadata?.duration || null,
-              isPlaying: playingIds.has(sound.id),
-              isLoading: loadingId === sound.id,
-              thumbnailUrl: sound.metadata?.thumbnailUrl || sound.metadata?.screenshotUrl || null,
-            }))}
+            sounds={sounds.map((sound) => {
+              // Calculate clip duration from start and end times
+              const parseTime = (timeStr) => {
+                const parts = timeStr.split(":");
+                if (parts.length === 2) {
+                  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                }
+                return 0;
+              };
+
+              const startSeconds = parseTime(sound.metadata?.start || "0:0");
+              const endSeconds = parseTime(sound.metadata?.end || "0:1");
+              const clipDuration = endSeconds - startSeconds;
+              const durationMinutes = Math.floor(clipDuration / 60);
+              const durationSecondsRem = clipDuration % 60;
+              const totalDuration = `${durationMinutes
+                .toString()
+                .padStart(2, "0")}:${durationSecondsRem
+                .toString()
+                .padStart(2, "0")}`;
+
+              return {
+                id: sound.id,
+                title: sound.metadata?.title || sound.id,
+                duration: sound.metadata?.duration || null,
+                isPlaying: playingIds.has(sound.id),
+                isLoading: loadingId === sound.id,
+                thumbnailUrl:
+                  sound.metadata?.thumbnailUrl ||
+                  sound.metadata?.screenshotUrl ||
+                  null,
+                progress: audioProgress.get(sound.id) || 0,
+                countdown: audioCountdown.get(sound.id) || totalDuration,
+              };
+            })}
             onPlay={handlePlay}
             onDelete={handleDelete}
             onReorder={handleReorderSounds}
@@ -241,7 +345,8 @@ function App() {
           <div className="storage-info">
             <span className="storage-label">Storage:</span>
             <span className="storage-usage">
-              {Math.round(usage / 1024 / 1024)}MB / {Math.round(quota / 1024 / 1024)}MB
+              {Math.round(usage / 1024 / 1024)}MB /{" "}
+              {Math.round(quota / 1024 / 1024)}MB
             </span>
             <span className="storage-percent">({percent}%)</span>
           </div>

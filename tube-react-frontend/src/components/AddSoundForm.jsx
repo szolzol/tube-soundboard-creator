@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./AddSoundForm.css";
+import apiService from "../services/apiService";
 
 function AddSoundForm({ onAddSound }) {
   const [ytUrl, setYtUrl] = useState("");
@@ -10,6 +11,7 @@ function AddSoundForm({ onAddSound }) {
   const [progress, setProgress] = useState(0);
   const [progressStatus, setProgressStatus] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isFetchingDuration, setIsFetchingDuration] = useState(false);
 
   // Helper function to parse time string to seconds
   const parseTimeToSeconds = (timeStr) => {
@@ -68,6 +70,46 @@ function AddSoundForm({ onAddSound }) {
     return m * 60 + s;
   };
 
+  const fetchVideoInfo = async (url) => {
+    if (url.trim()) {
+      setIsFetchingDuration(true);
+      try {
+        const videoInfo = await apiService.getVideoInfo(url);
+        if (videoInfo.duration_seconds) {
+          const durationSeconds = Math.floor(videoInfo.duration_seconds);
+          const formattedDuration = formatSecondsToTime(durationSeconds);
+          setEnd(formattedDuration);
+        } else if (videoInfo.duration) {
+          // Fallback to formatted duration if available
+          setEnd(videoInfo.duration);
+        }
+        if (videoInfo.title) {
+          setTitle(videoInfo.title);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch video info:', error);
+      } finally {
+        setIsFetchingDuration(false);
+      }
+    }
+  };
+
+  const handleYtUrlChange = (newUrl) => {
+    setYtUrl(newUrl);
+    
+    // Clear timeout if user is typing
+    if (window.durationFetchTimeout) {
+      clearTimeout(window.durationFetchTimeout);
+    }
+    
+    // Fetch video info after user stops typing for 1 second
+    if (newUrl.trim()) {
+      window.durationFetchTimeout = setTimeout(() => {
+        fetchVideoInfo(newUrl);
+      }, 1000);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -94,20 +136,15 @@ function AddSoundForm({ onAddSound }) {
     setProgressStatus("Starting extraction...");
 
     try {
-      // 1. POST /extract
-      const extractResp = await fetch("/extract", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          youtube_url: ytUrl,
-          start_time: startSec,
-          end_time: endSec,
-          output_format: "mp3",
-        }),
+      // 1. POST /extract using apiService
+      const extractResult = await apiService.extractAudio({
+        youtube_url: ytUrl,
+        start_time: startSec,
+        end_time: endSec,
+        output_format: "mp3",
       });
 
-      if (!extractResp.ok) throw new Error("Failed to start extraction");
-      const { job_id } = await extractResp.json();
+      const job_id = extractResult.job_id;
 
       // 2. Poll /status/{job_id}
       let status = "queued";
@@ -117,10 +154,8 @@ function AddSoundForm({ onAddSound }) {
 
       while (status !== "done" && pollCount < 60) {
         await new Promise((res) => setTimeout(res, 2000));
-        const statResp = await fetch(`/status/${job_id}`);
-        if (!statResp.ok) throw new Error("Failed to check status");
-
-        const stat = await statResp.json();
+        const stat = await apiService.getJobStatus(job_id);
+        
         status = stat.status;
         file_id = stat.file_id;
         jobResult = stat.result;
@@ -146,15 +181,16 @@ function AddSoundForm({ onAddSound }) {
       setProgress(100);
       setProgressStatus("Downloading...");
 
-      // 3. GET /download/{file_id}
-      const dlResp = await fetch(`/download/${file_id}`);
+      // 3. GET /download/{file_id} using apiService
+      const downloadUrl = apiService.getDownloadUrl(file_id);
+      const dlResp = await fetch(downloadUrl);
       if (!dlResp.ok) throw new Error("Failed to download file");
 
       const blob = await dlResp.blob();
 
-      // Get image URLs if available
-      const thumbnailUrl = `/thumbnail/${file_id}`;
-      const screenshotUrl = `/screenshot/${file_id}`;
+      // Get image URLs if available using apiService
+      const thumbnailUrl = apiService.getThumbnailUrl(file_id);
+      const screenshotUrl = apiService.getScreenshotUrl(file_id);
 
       // Extract video title from job result
       const videoTitle = jobResult?.video_title || "Untitled";
@@ -224,6 +260,7 @@ function AddSoundForm({ onAddSound }) {
         <div className="form-group">
           <label htmlFor="ytUrl" className="form-label">
             YouTube URL or ID
+            {isFetchingDuration && <span className="fetching-duration"> (fetching duration...)</span>}
           </label>
           <input
             id="ytUrl"
@@ -231,7 +268,7 @@ function AddSoundForm({ onAddSound }) {
             className="form-input"
             placeholder="https://youtube.com/watch?v=... or video ID"
             value={ytUrl}
-            onChange={(e) => setYtUrl(e.target.value)}
+            onChange={(e) => handleYtUrlChange(e.target.value)}
             required
             disabled={loading}
           />

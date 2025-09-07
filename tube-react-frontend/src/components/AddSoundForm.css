@@ -103,6 +103,13 @@
   font-size: 0.9rem;
 }
 
+.fetching-duration {
+  color: var(--accent-color);
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
 .form-input {
   background: var(--bg-tertiary);
   border: 2px solid var(--border-color);
