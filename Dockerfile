@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 8000
 
 # Default command
-CMD ["python", "start.py"]
+CMD ["python", "main.py"]
