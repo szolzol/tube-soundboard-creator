@@ -1,0 +1,8 @@
+firebase-functions
+firebase-admin
+flask
+flask-cors
+yt-dlp
+requests
+google-cloud-storage
+google-cloud-firestore

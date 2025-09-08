@@ -15,7 +15,7 @@
 
 - **Image extraction**: Integrated YouTube thumbnail download and video screenshot extraction at clip start timestamps
 - **Video metadata extraction**: Added support for extracting and storing video title, uploader, duration, and view count
-- **New API endpoints**: 
+- **New API endpoints**:
   - `GET /thumbnail/{file_id}` – Serve YouTube thumbnail images
   - `GET /screenshot/{file_id}` – Serve video screenshot images
 - **Enhanced job results**: Job status now includes video metadata for frontend consumption
