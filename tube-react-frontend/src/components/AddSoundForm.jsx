@@ -264,7 +264,7 @@ function AddSoundForm({ onAddSound }) {
               {isFetchingDuration && (
                 <span className="fetching-duration">
                   {" "}
-                  (fetching duration...)
+                  (fetching metadata...)
                 </span>
               )}
             </label>

@@ -1,6 +1,7 @@
 # 🚀 Quick Deploy Guide
 
 ## Recommended: Railway (Easiest)
+
 ```bash
 # 1. Install Railway CLI
 npm install -g @railway/cli
@@ -19,6 +20,7 @@ firebase deploy --only hosting
 ```
 
 ## Alternative: Render
+
 ```bash
 # 1. Push code to GitHub
 git add .
@@ -33,6 +35,7 @@ git push
 ```
 
 ## Alternative: Fly.io
+
 ```bash
 # 1. Install Fly CLI
 # PowerShell: iwr https://fly.io/install.ps1 -useb | iex
@@ -46,11 +49,12 @@ git push
 
 ## Free Tier Comparison
 
-| Platform | Free Tier | Pros | Cons |
-|----------|-----------|------|------|
-| **Railway** | $5/month credit | ✅ Easiest setup<br>✅ Persistent storage<br>✅ Auto-deployments | Credit-based |
-| **Render** | 750 hours/month | ✅ Generous free tier<br>✅ Auto-deployments | Cold starts |
-| **Fly.io** | 3 shared VMs | ✅ Good performance<br>✅ Global edge | More complex setup |
+| Platform    | Free Tier       | Pros                                                             | Cons               |
+| ----------- | --------------- | ---------------------------------------------------------------- | ------------------ |
+| **Railway** | $5/month credit | ✅ Easiest setup<br>✅ Persistent storage<br>✅ Auto-deployments | Credit-based       |
+| **Render**  | 750 hours/month | ✅ Generous free tier<br>✅ Auto-deployments                     | Cold starts        |
+| **Fly.io**  | 3 shared VMs    | ✅ Good performance<br>✅ Global edge                            | More complex setup |
 
 ## ⭐ Recommendation: Railway
+
 Railway is the easiest to set up and has the best free tier for your app's needs.
