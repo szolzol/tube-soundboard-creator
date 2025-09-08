@@ -186,7 +186,7 @@ if __name__ == "__main__":
     end = args.end
     fmt = args.fmt
     try:
-        out_path, tmp_dir = extract_audio_segment(url, start, end, fmt)
+        out_path, tmp_dir, video_metadata = extract_audio_segment(url, start, end, fmt)
         # --- OUTPUT MANAGEMENT ---
         os.makedirs("output", exist_ok=True)
         # Extract video ID from URL
