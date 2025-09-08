@@ -121,21 +121,52 @@ def run_extraction(job_id, req: ExtractionRequest):
     try:
         jobs[job_id]["status"] = "running"
         jobs[job_id]["progress"] = 10
-        output_path, temp_dir = extract_audio_segment(
+        
+        # Extract video info for metadata
+        print(f"Starting extraction for job {job_id}")
+        print(f"URL: {req.youtube_url}")
+        print(f"Start: {req.start_time}, End: {req.end_time}")
+        
+        result = extract_audio_segment(
             req.youtube_url, req.start_time, req.end_time, req.output_format
         )
+        
+        print(f"Extraction result type: {type(result)}")
+        print(f"Extraction result length: {len(result) if isinstance(result, tuple) else 'not tuple'}")
+        
+        # Handle different return formats
+        if isinstance(result, tuple):
+            if len(result) == 2:
+                output_path, temp_dir = result
+                video_metadata = {}
+            elif len(result) == 3:
+                output_path, temp_dir, video_metadata = result
+            elif len(result) == 5:
+                output_path, screenshot_path, thumbnail_path, video_metadata, temp_dir = result
+            else:
+                raise ValueError(f"Unexpected return format: {len(result)} values returned")
+        else:
+            raise ValueError(f"Expected tuple, got {type(result)}")
+        
         file_id = str(uuid.uuid4())
         files[file_id] = {"path": output_path, "metadata": {
             "youtube_url": req.youtube_url,
             "start_time": req.start_time,
             "end_time": req.end_time,
-            "output_format": req.output_format
+            "output_format": req.output_format,
+            "video_title": video_metadata.get("title", "Unknown") if video_metadata else "Unknown"
         }}
         jobs[job_id]["status"] = "done"
         jobs[job_id]["progress"] = 100
         jobs[job_id]["file_id"] = file_id
         jobs[job_id]["result"] = files[file_id]["metadata"]
+        
+        print(f"Job {job_id} completed successfully")
+        
     except Exception as e:
+        print(f"Job {job_id} failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
         jobs[job_id]["status"] = "error"
         jobs[job_id]["error"] = str(e)
 

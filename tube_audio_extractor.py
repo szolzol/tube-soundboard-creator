@@ -161,8 +161,14 @@ def extract_audio_segment(youtube_url, start_time, end_time, output_format):
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise RuntimeError(f"FFmpeg segmentation/conversion error: {e}")
 
-    # 5. File output (return path)
-    return output_path, temp_dir
+    # 5. File output (return path + metadata)
+    video_metadata = {
+        "title": info.get('title'),
+        "duration": info.get('duration'),
+        "uploader": info.get('uploader'),
+        "view_count": info.get('view_count')
+    }
+    return output_path, temp_dir, video_metadata
 
 # --- Példa hívás ---
 if __name__ == "__main__":
