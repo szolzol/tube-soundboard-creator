@@ -7,6 +7,7 @@ import InstallPrompt from "./components/InstallPrompt";
 import { useAudioStorage } from "./hooks/useAudioStorage";
 import { useStorageQuota } from "./hooks/useStorageQuota";
 import { usePWA } from "./hooks/usePWA";
+import { thumbnailCache } from "./services/thumbnailCache";
 
 function App() {
   const { saveAudio, getAllAudio, deleteAudio, getAudio } = useAudioStorage();
@@ -30,7 +31,34 @@ function App() {
   const loadSounds = useCallback(async () => {
     try {
       const audioFiles = await getAllAudio();
-      setSounds(audioFiles);
+      
+      // Update cached thumbnails for existing sounds
+      const soundsWithCachedThumbnails = await Promise.all(
+        audioFiles.map(async (sound) => {
+          if (sound.metadata?.file_id) {
+            // Check if we have cached thumbnails
+            const thumbKey = `thumb_${sound.metadata.file_id}`;
+            const screenshotKey = `screenshot_${sound.metadata.file_id}`;
+            
+            const cachedThumb = await thumbnailCache.getFromCache(thumbKey);
+            const cachedScreenshot = await thumbnailCache.getFromCache(screenshotKey);
+            
+            if (cachedThumb || cachedScreenshot) {
+              return {
+                ...sound,
+                metadata: {
+                  ...sound.metadata,
+                  thumbnailUrl: cachedThumb || sound.metadata?.thumbnailUrl,
+                  screenshotUrl: cachedScreenshot || sound.metadata?.screenshotUrl,
+                }
+              };
+            }
+          }
+          return sound;
+        })
+      );
+      
+      setSounds(soundsWithCachedThumbnails);
     } catch (error) {
       console.error("Failed to load sounds:", error);
       setError("Failed to load sounds");
@@ -40,6 +68,9 @@ function App() {
   // Load sounds on mount
   useEffect(() => {
     loadSounds();
+    
+    // Clean up old thumbnails periodically
+    thumbnailCache.cleanup();
   }, [loadSounds]);
 
   const handlePlay = async (id) => {

@@ -347,9 +347,9 @@ function SoundButton({
 
       {/* Progress bar - only when playing */}
       {sound.isPlaying && (
-        <div className="progress-bar-container">
+        <div className="sound-progress-container">
           <div
-            className="progress-bar"
+            className="sound-progress-bar"
             style={{ width: `${sound.progress || 0}%` }}
           />
         </div>

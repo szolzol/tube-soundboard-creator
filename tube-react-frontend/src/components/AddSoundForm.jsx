@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./AddSoundForm.css";
 import apiService from "../services/apiService";
+import { thumbnailCache } from "../services/thumbnailCache";
 
 function AddSoundForm({ onAddSound }) {
   const [ytUrl, setYtUrl] = useState("");
@@ -192,10 +193,18 @@ function AddSoundForm({ onAddSound }) {
       const thumbnailUrl = apiService.getThumbnailUrl(file_id);
       const screenshotUrl = apiService.getScreenshotUrl(file_id);
 
+      // Cache thumbnails locally and get cached URLs
+      const cachedThumbnails = await thumbnailCache.preloadThumbnails(
+        file_id, 
+        thumbnailUrl, 
+        screenshotUrl
+      );
+
       // Extract video title from job result
       const videoTitle = jobResult?.video_title || "Untitled";
       console.log("DEBUG: Job result:", jobResult);
       console.log("DEBUG: Video title extracted:", videoTitle);
+      console.log("DEBUG: Cached thumbnails:", cachedThumbnails);
 
       // Call parent handler
       await onAddSound({
@@ -205,8 +214,9 @@ function AddSoundForm({ onAddSound }) {
           ytUrl,
           start,
           end,
-          thumbnailUrl: thumbnailUrl,
-          screenshotUrl: screenshotUrl,
+          // Use cached thumbnails if available, fallback to server URLs
+          thumbnailUrl: cachedThumbnails.thumbnailUrl || thumbnailUrl,
+          screenshotUrl: cachedThumbnails.screenshotUrl || screenshotUrl,
           file_id: file_id,
           video_title: videoTitle,
         },
