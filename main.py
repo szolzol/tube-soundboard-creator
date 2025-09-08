@@ -123,30 +123,50 @@ def run_extraction(job_id, req: ExtractionRequest):
         jobs[job_id]["progress"] = 10
         
         # Extract video info for metadata
-        print(f"Starting extraction for job {job_id}")
-        print(f"URL: {req.youtube_url}")
-        print(f"Start: {req.start_time}, End: {req.end_time}")
+        print(f"🚀 Starting extraction for job {job_id}")
+        print(f"📺 URL: {req.youtube_url}")
+        print(f"⏰ Start: {req.start_time}, End: {req.end_time}")
+        print(f"🎵 Format: {req.output_format}")
+        
+        # Import and version info
+        import yt_dlp
+        import ffmpeg
+        print(f"📦 yt-dlp version: {yt_dlp.version.__version__}")
+        print(f"📦 Python version: {__import__('sys').version}")
         
         result = extract_audio_segment(
             req.youtube_url, req.start_time, req.end_time, req.output_format
         )
         
-        print(f"Extraction result type: {type(result)}")
-        print(f"Extraction result length: {len(result) if isinstance(result, tuple) else 'not tuple'}")
+        print(f"🔍 Result type: {type(result)}")
+        print(f"🔍 Result length: {len(result) if isinstance(result, tuple) else 'not tuple'}")
+        print(f"🔍 Result preview: {str(result)[:200]}...")
         
-        # Handle different return formats
+        # Handle different return formats with detailed logging
         if isinstance(result, tuple):
+            print(f"✅ Got tuple with {len(result)} values")
             if len(result) == 2:
                 output_path, temp_dir = result
                 video_metadata = {}
+                print("📁 Using 2-value unpacking (legacy mode)")
             elif len(result) == 3:
                 output_path, temp_dir, video_metadata = result
+                print("📁 Using 3-value unpacking (new mode)")
             elif len(result) == 5:
                 output_path, screenshot_path, thumbnail_path, video_metadata, temp_dir = result
+                print("📁 Using 5-value unpacking (full mode)")
             else:
-                raise ValueError(f"Unexpected return format: {len(result)} values returned")
+                error_msg = f"Unexpected return format: {len(result)} values returned: {result}"
+                print(f"❌ {error_msg}")
+                raise ValueError(error_msg)
         else:
-            raise ValueError(f"Expected tuple, got {type(result)}")
+            error_msg = f"Expected tuple, got {type(result)}: {result}"
+            print(f"❌ {error_msg}")
+            raise ValueError(error_msg)
+        
+        print(f"📁 Output path: {output_path}")
+        print(f"📁 Temp dir: {temp_dir}")
+        print(f"📊 Metadata: {video_metadata}")
         
         file_id = str(uuid.uuid4())
         files[file_id] = {"path": output_path, "metadata": {
@@ -161,11 +181,13 @@ def run_extraction(job_id, req: ExtractionRequest):
         jobs[job_id]["file_id"] = file_id
         jobs[job_id]["result"] = files[file_id]["metadata"]
         
-        print(f"Job {job_id} completed successfully")
+        print(f"🎉 Job {job_id} completed successfully")
         
     except Exception as e:
-        print(f"Job {job_id} failed: {str(e)}")
+        error_msg = f"Job {job_id} failed: {str(e)}"
+        print(f"❌ {error_msg}")
         import traceback
+        print("📋 Full traceback:")
         traceback.print_exc()
         jobs[job_id]["status"] = "error"
         jobs[job_id]["error"] = str(e)
