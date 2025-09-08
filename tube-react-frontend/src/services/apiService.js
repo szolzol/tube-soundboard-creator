@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/firebase';
+import { API_BASE_URL } from "../config/firebase";
 
 class ApiService {
   constructor() {
@@ -7,10 +7,10 @@ class ApiService {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const defaultOptions = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     };
 
@@ -25,21 +25,27 @@ class ApiService {
 
     try {
       const response = await fetch(url, finalOptions);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
+        throw new Error(
+          `API Error: ${response.status} - ${errorText.substring(0, 200)}`
+        );
       }
 
       // Handle different response types
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
         const jsonData = await response.json();
         return jsonData;
       } else {
         const textData = await response.text();
-        throw new Error(`Expected JSON but got ${contentType || 'unknown'}: ${textData.substring(0, 100)}...`);
+        throw new Error(
+          `Expected JSON but got ${
+            contentType || "unknown"
+          }: ${textData.substring(0, 100)}...`
+        );
       }
     } catch (error) {
       // Add more debug info to the error message
@@ -50,16 +56,16 @@ class ApiService {
 
   // Video info endpoint
   async getVideoInfo(youtubeUrl) {
-    return this.request('/video-info', {
-      method: 'POST',
+    return this.request("/video-info", {
+      method: "POST",
       body: JSON.stringify({ youtube_url: youtubeUrl }),
     });
   }
 
   // Extract audio endpoint
   async extractAudio(extractionData) {
-    return this.request('/extract', {
-      method: 'POST',
+    return this.request("/extract", {
+      method: "POST",
       body: JSON.stringify(extractionData),
     });
   }
@@ -91,7 +97,7 @@ class ApiService {
 
   // Health check
   async healthCheck() {
-    return this.request('/health');
+    return this.request("/health");
   }
 }
 

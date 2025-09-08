@@ -9,7 +9,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
@@ -20,10 +20,10 @@ export const storage = getStorage(app);
 export const db = getFirestore(app);
 
 // API Configuration
-export const API_BASE_URL = 'https://tubesoundboard-production.up.railway.app'; // Temporary hardcode
+export const API_BASE_URL = "https://tubesoundboard-production.up.railway.app"; // Temporary hardcode
 
 // Debug log
-console.log('Environment vars:', import.meta.env);
-console.log('API_BASE_URL:', API_BASE_URL);
+console.log("Environment vars:", import.meta.env);
+console.log("API_BASE_URL:", API_BASE_URL);
 
 export default app;

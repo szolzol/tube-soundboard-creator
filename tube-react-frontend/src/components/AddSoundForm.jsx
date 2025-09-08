@@ -15,7 +15,7 @@ function AddSoundForm({ onAddSound }) {
 
   // Helper function to parse time string to seconds
   const parseTimeToSeconds = (timeStr) => {
-    const parts = timeStr.split(':');
+    const parts = timeStr.split(":");
     if (parts.length === 2) {
       const minutes = parseInt(parts[0]) || 0;
       const seconds = parseInt(parts[1]) || 0;
@@ -28,7 +28,7 @@ function AddSoundForm({ onAddSound }) {
   const formatSecondsToTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   // Increment/decrement time functions
@@ -43,7 +43,7 @@ function AddSoundForm({ onAddSound }) {
     setStart(newStartTime);
     const startSeconds = parseTimeToSeconds(newStartTime);
     const endSeconds = parseTimeToSeconds(end);
-    
+
     // If end time is not at least 1 second after start time, adjust it
     if (endSeconds <= startSeconds) {
       const newEndTime = formatSecondsToTime(startSeconds + 1);
@@ -55,7 +55,7 @@ function AddSoundForm({ onAddSound }) {
     setEnd(newEndTime);
     const startSeconds = parseTimeToSeconds(start);
     const endSeconds = parseTimeToSeconds(newEndTime);
-    
+
     // If end time is not at least 1 second after start time, adjust start time
     if (endSeconds <= startSeconds) {
       const newStartTime = formatSecondsToTime(Math.max(0, endSeconds - 1));
@@ -87,7 +87,7 @@ function AddSoundForm({ onAddSound }) {
           setTitle(videoInfo.title);
         }
       } catch (error) {
-        console.warn('Failed to fetch video info:', error);
+        console.warn("Failed to fetch video info:", error);
       } finally {
         setIsFetchingDuration(false);
       }
@@ -96,12 +96,12 @@ function AddSoundForm({ onAddSound }) {
 
   const handleYtUrlChange = (newUrl) => {
     setYtUrl(newUrl);
-    
+
     // Clear timeout if user is typing
     if (window.durationFetchTimeout) {
       clearTimeout(window.durationFetchTimeout);
     }
-    
+
     // Fetch video info after user stops typing for 1 second
     if (newUrl.trim()) {
       window.durationFetchTimeout = setTimeout(() => {
@@ -155,7 +155,7 @@ function AddSoundForm({ onAddSound }) {
       while (status !== "done" && pollCount < 60) {
         await new Promise((res) => setTimeout(res, 2000));
         const stat = await apiService.getJobStatus(job_id);
-        
+
         status = stat.status;
         file_id = stat.file_id;
         jobResult = stat.result;
@@ -240,9 +240,10 @@ function AddSoundForm({ onAddSound }) {
           type="button"
           className="collapse-btn"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? "Expand form" : "Collapse form"}
-        >
-          <span className={`collapse-arrow ${isCollapsed ? 'collapsed' : ''}`}>▼</span>
+          aria-label={isCollapsed ? "Expand form" : "Collapse form"}>
+          <span className={`collapse-arrow ${isCollapsed ? "collapsed" : ""}`}>
+            ▼
+          </span>
         </button>
       </div>
 
@@ -255,123 +256,124 @@ function AddSoundForm({ onAddSound }) {
         </div>
       )}
 
-      <div className={`form-content ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className={`form-content ${isCollapsed ? "collapsed" : ""}`}>
         <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
-          <label htmlFor="ytUrl" className="form-label">
-            YouTube URL or ID
-            {isFetchingDuration && <span className="fetching-duration"> (fetching duration...)</span>}
-          </label>
-          <input
-            id="ytUrl"
-            type="text"
-            className="form-input"
-            placeholder="https://youtube.com/watch?v=... or video ID"
-            value={ytUrl}
-            onChange={(e) => handleYtUrlChange(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
-
-        <div className="form-row">
-          <div className="labels-row">
-            <label htmlFor="start" className="form-label">
-              Start Time
+          <div className="form-group">
+            <label htmlFor="ytUrl" className="form-label">
+              YouTube URL or ID
+              {isFetchingDuration && (
+                <span className="fetching-duration">
+                  {" "}
+                  (fetching duration...)
+                </span>
+              )}
             </label>
-            <label htmlFor="end" className="form-label">
-              End Time
-            </label>
+            <input
+              id="ytUrl"
+              type="text"
+              className="form-input"
+              placeholder="https://youtube.com/watch?v=... or video ID"
+              value={ytUrl}
+              onChange={(e) => handleYtUrlChange(e.target.value)}
+              required
+              disabled={loading}
+            />
           </div>
-          <div className="inputs-row">
-            <div className="time-input-container">
-              <input
-                id="start"
-                type="text"
-                className="form-input time-input"
-                placeholder="MM:SS"
-                pattern="^\d{1,2}:\d{2}$"
-                value={start}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
-                required
-                disabled={loading}
-              />
-              <div className="time-controls">
-                <button
-                  type="button"
-                  className="time-btn time-btn-up"
-                  onClick={() => handleStartTimeChange(adjustTime(start, 1))}
+
+          <div className="form-row">
+            <div className="labels-row">
+              <label htmlFor="start" className="form-label">
+                Start Time
+              </label>
+              <label htmlFor="end" className="form-label">
+                End Time
+              </label>
+            </div>
+            <div className="inputs-row">
+              <div className="time-input-container">
+                <input
+                  id="start"
+                  type="text"
+                  className="form-input time-input"
+                  placeholder="MM:SS"
+                  pattern="^\d{1,2}:\d{2}$"
+                  value={start}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
+                  required
                   disabled={loading}
-                  aria-label="Increase start time by 1 second"
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  className="time-btn time-btn-down"
-                  onClick={() => handleStartTimeChange(adjustTime(start, -1))}
+                />
+                <div className="time-controls">
+                  <button
+                    type="button"
+                    className="time-btn time-btn-up"
+                    onClick={() => handleStartTimeChange(adjustTime(start, 1))}
+                    disabled={loading}
+                    aria-label="Increase start time by 1 second">
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className="time-btn time-btn-down"
+                    onClick={() => handleStartTimeChange(adjustTime(start, -1))}
+                    disabled={loading}
+                    aria-label="Decrease start time by 1 second">
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <div className="time-input-container">
+                <input
+                  id="end"
+                  type="text"
+                  className="form-input time-input"
+                  placeholder="MM:SS"
+                  pattern="^\d{1,2}:\d{2}$"
+                  value={end}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  required
                   disabled={loading}
-                  aria-label="Decrease start time by 1 second"
-                >
-                  ▼
-                </button>
+                />
+                <div className="time-controls">
+                  <button
+                    type="button"
+                    className="time-btn time-btn-up"
+                    onClick={() => handleEndTimeChange(adjustTime(end, 1))}
+                    disabled={loading}
+                    aria-label="Increase end time by 1 second">
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className="time-btn time-btn-down"
+                    onClick={() => handleEndTimeChange(adjustTime(end, -1))}
+                    disabled={loading}
+                    aria-label="Decrease end time by 1 second">
+                    ▼
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="time-input-container">
-              <input
-                id="end"
-                type="text"
-                className="form-input time-input"
-                placeholder="MM:SS"
-                pattern="^\d{1,2}:\d{2}$"
-                value={end}
-                onChange={(e) => handleEndTimeChange(e.target.value)}
-                required
-                disabled={loading}
-              />
-              <div className="time-controls">
-                <button
-                  type="button"
-                  className="time-btn time-btn-up"
-                  onClick={() => handleEndTimeChange(adjustTime(end, 1))}
-                  disabled={loading}
-                  aria-label="Increase end time by 1 second"
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  className="time-btn time-btn-down"
-                  onClick={() => handleEndTimeChange(adjustTime(end, -1))}
-                  disabled={loading}
-                  aria-label="Decrease end time by 1 second"
-                >
-                  ▼
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="title" className="form-label">
-            Title (optional)
-          </label>
-          <input
-            id="title"
-            type="text"
-            className="form-input"
-            placeholder="Custom title for this sound"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={loading}
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="title" className="form-label">
+              Title (optional)
+            </label>
+            <input
+              id="title"
+              type="text"
+              className="form-input"
+              placeholder="Custom title for this sound"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={loading}
+            />
+          </div>
 
-        <button type="submit" className="submit-button" disabled={loading}>
-          {loading ? "Processing..." : "Add Sound"}
-        </button>
-      </form>
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? "Processing..." : "Add Sound"}
+          </button>
+        </form>
       </div>
     </div>
   );

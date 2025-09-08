@@ -1,54 +1,57 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>API Test</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Direct API Test</h1>
     <button onclick="testAPI()">Test Video Info API</button>
     <div id="result"></div>
     <div id="error"></div>
 
     <script>
-        async function testAPI() {
-            const resultDiv = document.getElementById('result');
-            const errorDiv = document.getElementById('error');
-            
-            try {
-                const apiUrl = 'https://tubesoundboard-production.up.railway.app/video-info';
-                console.log('Testing API URL:', apiUrl);
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        youtube_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-                    })
-                });
-                
-                console.log('Response status:', response.status);
-                console.log('Response headers:', [...response.headers.entries()]);
-                
-                const textResponse = await response.text();
-                console.log('Raw response:', textResponse);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}, response: ${textResponse}`);
-                }
-                
-                const data = JSON.parse(textResponse);
-                console.log('Parsed data:', data);
-                resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-                errorDiv.innerHTML = '';
-                
-            } catch (error) {
-                console.error('Error:', error);
-                errorDiv.innerHTML = 'Error: ' + error.message;
-                resultDiv.innerHTML = '';
-            }
+      async function testAPI() {
+        const resultDiv = document.getElementById("result");
+        const errorDiv = document.getElementById("error");
+
+        try {
+          const apiUrl =
+            "https://tubesoundboard-production.up.railway.app/video-info";
+          console.log("Testing API URL:", apiUrl);
+
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            }),
+          });
+
+          console.log("Response status:", response.status);
+          console.log("Response headers:", [...response.headers.entries()]);
+
+          const textResponse = await response.text();
+          console.log("Raw response:", textResponse);
+
+          if (!response.ok) {
+            throw new Error(
+              `HTTP error! status: ${response.status}, response: ${textResponse}`
+            );
+          }
+
+          const data = JSON.parse(textResponse);
+          console.log("Parsed data:", data);
+          resultDiv.innerHTML =
+            "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+          errorDiv.innerHTML = "";
+        } catch (error) {
+          console.error("Error:", error);
+          errorDiv.innerHTML = "Error: " + error.message;
+          resultDiv.innerHTML = "";
         }
+      }
     </script>
-</body>
+  </body>
 </html>
