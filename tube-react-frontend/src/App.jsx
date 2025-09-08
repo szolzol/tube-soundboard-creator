@@ -276,7 +276,14 @@ function App() {
     <div className={`app ${isDarkMode ? "dark-theme" : "light-theme"}`}>
       <header className="app-header">
         <div className="app-header-content">
-          <h1 className="app-title">Tube Soundboard Creator</h1>
+          <div className="app-title-logo-group">
+            <img
+              src="/tubesoundboard_logo.png"
+              alt="Tube Soundboard Logo"
+              className="app-logo"
+            />
+            <h1 className="app-title">Tube Soundboard Creator</h1>
+          </div>
           <div className="app-status">
             <button
               className="theme-toggle"

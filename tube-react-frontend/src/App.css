@@ -85,11 +85,27 @@ body.light-theme {
   align-items: center;
 }
 
+.app-title-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-logo {
+  height: 2.2rem;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  margin-right: 0.5rem;
+}
+
 .app-title {
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
   text-shadow: 0 2px 4px var(--shadow-light);
+  display: flex;
+  align-items: center;
 }
 
 .app-status {
