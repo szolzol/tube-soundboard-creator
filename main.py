@@ -286,6 +286,30 @@ def download_file(file_id: str):
     fmt = file["metadata"]["output_format"]
     return FileResponse(path, media_type=f"audio/{fmt}", filename=os.path.basename(path))
 
+@app.get("/thumbnail/{file_id}")
+def get_thumbnail(file_id: str):
+    from fastapi.responses import RedirectResponse
+    
+    file = files.get(file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # For now, return the YouTube thumbnail URL from metadata
+    metadata = file.get("metadata", {})
+    youtube_url = metadata.get("youtube_url", "")
+    
+    if youtube_url:
+        # Extract video ID from YouTube URL
+        import re
+        match = re.search(r"v=([\w-]+)", youtube_url)
+        if match:
+            video_id = match.group(1)
+            # Use YouTube's thumbnail service - redirect directly to the image
+            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+            return RedirectResponse(url=thumbnail_url)
+    
+    raise HTTPException(status_code=404, detail="Thumbnail not available")
+
 # --- WebSocket for real-time progress ---
 @app.websocket("/ws/progress/{job_id}")
 async def websocket_progress(websocket: WebSocket, job_id: str):
