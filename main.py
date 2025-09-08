@@ -37,6 +37,67 @@ app.add_middleware(
 def health_check():
     return {"status": "healthy", "service": "tube-soundboard-api"}
 
+# Debug endpoint to check deployment version
+@app.get("/debug/version")
+def debug_version():
+    import os
+    import inspect
+    from tube_audio_extractor import extract_audio_segment
+    
+    # Get the source file of the extract_audio_segment function
+    source_file = inspect.getfile(extract_audio_segment)
+    
+    # Get git commit hash if available
+    git_hash = "unknown"
+    try:
+        import subprocess
+        result = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, cwd='.')
+        if result.returncode == 0:
+            git_hash = result.stdout.strip()[:8]
+    except:
+        pass
+    
+    return {
+        "git_commit": git_hash,
+        "extract_function_file": source_file,
+        "python_version": os.sys.version,
+        "working_directory": os.getcwd(),
+        "deployment_timestamp": "2025-09-08-latest"
+    }
+
+# Debug endpoint to test extract_audio_segment return values
+@app.get("/debug/test-extract")
+def debug_test_extract():
+    """Test what extract_audio_segment actually returns"""
+    try:
+        from tube_audio_extractor import extract_audio_segment
+        import inspect
+        
+        # Get function signature
+        sig = inspect.signature(extract_audio_segment)
+        
+        # Try to call with a very short clip to see return format
+        # Using a public domain video that should always work
+        result = extract_audio_segment(
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "1", "3", "mp3"
+        )
+        
+        return {
+            "function_signature": str(sig),
+            "result_type": str(type(result)),
+            "result_length": len(result) if isinstance(result, (tuple, list)) else "not iterable",
+            "result_values": [str(type(item)) for item in result] if isinstance(result, (tuple, list)) else "not iterable",
+            "test_successful": True
+        }
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "error_type": str(type(e)),
+            "test_successful": False
+        }
+
 # Video info endpoint for getting title and duration
 @app.post("/video-info")
 def get_video_info(request: dict):
