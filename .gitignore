@@ -186,12 +186,14 @@ ENV/
 env.bak/
 venv.bak/
 
-# React environment files
+# React environment files (but allow templates)
 tube-react-frontend/.env
 tube-react-frontend/.env.local
 tube-react-frontend/.env.development
 tube-react-frontend/.env.production
 tube-react-frontend/.env.test
+!tube-react-frontend/.env.*.template
+!tube-react-frontend/.env.template
 
 # Spyder project settings
 .spyderproject
