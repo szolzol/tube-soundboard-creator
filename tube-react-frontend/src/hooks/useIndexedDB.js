@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 
 const DB_NAME = "soundboard-db";
-const DB_VERSION = 1;
+const DB_VERSION = 4; // Match the version from thumbnailCache.js
 const AUDIO_STORE = "audioFiles";
 const LAYOUT_STORE = "layouts";
 const SETTINGS_STORE = "settings";
@@ -10,20 +10,33 @@ const SETTINGS_STORE = "settings";
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e) => {
+    req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(AUDIO_STORE)) {
-        db.createObjectStore(AUDIO_STORE, { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains(LAYOUT_STORE)) {
-        db.createObjectStore(LAYOUT_STORE, { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
-        db.createObjectStore(SETTINGS_STORE, { keyPath: "key" });
-      }
+      
+      // Clean approach: recreate all stores for version consistency
+      const existingStores = Array.from(db.objectStoreNames);
+      existingStores.forEach(storeName => {
+        try {
+          db.deleteObjectStore(storeName);
+        } catch (error) {
+          console.warn('Could not delete store:', storeName, error);
+        }
+      });
+      
+      // Create all stores fresh
+      db.createObjectStore(AUDIO_STORE, { keyPath: "id" });
+      db.createObjectStore(LAYOUT_STORE, { keyPath: "id" });
+      db.createObjectStore(SETTINGS_STORE, { keyPath: "key" });
+      db.createObjectStore("thumbnails", { keyPath: "id" }); // Add thumbnail store
+      
+      console.log('IndexedDB schema updated to version', DB_VERSION);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
+    req.onblocked = () => {
+      console.warn('Database upgrade blocked - please close other tabs');
+      reject(new Error('Database upgrade blocked'));
+    };
   });
 }
 
