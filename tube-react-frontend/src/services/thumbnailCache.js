@@ -1,29 +1,40 @@
 // Thumbnail cache service for storing thumbnails locally
 
 const DB_NAME = "soundboard-db";
+const DB_VERSION = 4; // Increment to avoid version conflicts with previous deployments
 const THUMBNAIL_STORE = 'thumbnails';
 
 // Direct IndexedDB operations (without React hooks)
 const openDB = () => {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains('audioFiles')) {
-        db.createObjectStore('audioFiles', { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains('layouts')) {
-        db.createObjectStore('layouts', { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains('settings')) {
-        db.createObjectStore('settings', { keyPath: "key" });
-      }
-      if (!db.objectStoreNames.contains(THUMBNAIL_STORE)) {
-        db.createObjectStore(THUMBNAIL_STORE, { keyPath: "id" });
-      }
+      
+      // Clean approach: recreate all stores for version consistency
+      const existingStores = Array.from(db.objectStoreNames);
+      existingStores.forEach(storeName => {
+        try {
+          db.deleteObjectStore(storeName);
+        } catch (error) {
+          console.warn('Could not delete store:', storeName, error);
+        }
+      });
+      
+      // Create all stores fresh
+      db.createObjectStore('audioFiles', { keyPath: "id" });
+      db.createObjectStore('layouts', { keyPath: "id" });
+      db.createObjectStore('settings', { keyPath: "key" });
+      db.createObjectStore(THUMBNAIL_STORE, { keyPath: "id" });
+      
+      console.log('IndexedDB schema updated to version', DB_VERSION);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
+    req.onblocked = () => {
+      console.warn('Database upgrade blocked - please close other tabs');
+      reject(new Error('Database upgrade blocked'));
+    };
   });
 };
 
