@@ -310,6 +310,30 @@ def get_thumbnail(file_id: str):
     
     raise HTTPException(status_code=404, detail="Thumbnail not available")
 
+@app.get("/screenshot/{file_id}")
+def get_screenshot(file_id: str):
+    from fastapi.responses import RedirectResponse
+    
+    file = files.get(file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Return a different YouTube thumbnail (medium quality) for screenshots
+    metadata = file.get("metadata", {})
+    youtube_url = metadata.get("youtube_url", "")
+    
+    if youtube_url:
+        # Extract video ID from YouTube URL
+        import re
+        match = re.search(r"v=([\w-]+)", youtube_url)
+        if match:
+            video_id = match.group(1)
+            # Use YouTube's medium quality thumbnail for screenshots
+            screenshot_url = f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg"
+            return RedirectResponse(url=screenshot_url)
+    
+    raise HTTPException(status_code=404, detail="Screenshot not available")
+
 # --- WebSocket for real-time progress ---
 @app.websocket("/ws/progress/{job_id}")
 async def websocket_progress(websocket: WebSocket, job_id: str):

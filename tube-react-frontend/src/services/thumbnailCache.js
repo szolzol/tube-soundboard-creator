@@ -113,7 +113,13 @@ export class ThumbnailCache {
 
       // Download the image
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+      if (!response.ok) {
+        console.warn(`Failed to fetch thumbnail from ${url}: ${response.status} ${response.statusText}`);
+        if (response.status === 404) {
+          console.warn('Screenshot endpoint might not be available on backend');
+        }
+        return null;
+      }
       
       const blob = await response.blob();
       const base64 = await blobToBase64(blob);
