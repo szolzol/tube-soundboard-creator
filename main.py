@@ -299,9 +299,13 @@ def get_thumbnail(file_id: str):
     youtube_url = metadata.get("youtube_url", "")
     
     if youtube_url:
-        # Extract video ID from YouTube URL
+        # Extract video ID from YouTube URL (supports both regular and Shorts URLs)
         import re
+        # Try standard YouTube URL format first (v=VIDEO_ID)
         match = re.search(r"v=([\w-]+)", youtube_url)
+        if not match:
+            # Try YouTube Shorts format (/shorts/VIDEO_ID)
+            match = re.search(r"/shorts/([\w-]+)", youtube_url)
         if match:
             video_id = match.group(1)
             # Use YouTube's thumbnail service - redirect directly to the image
@@ -323,9 +327,13 @@ def get_screenshot(file_id: str):
     youtube_url = metadata.get("youtube_url", "")
     
     if youtube_url:
-        # Extract video ID from YouTube URL
+        # Extract video ID from YouTube URL (supports both regular and Shorts URLs)
         import re
+        # Try standard YouTube URL format first (v=VIDEO_ID)
         match = re.search(r"v=([\w-]+)", youtube_url)
+        if not match:
+            # Try YouTube Shorts format (/shorts/VIDEO_ID)
+            match = re.search(r"/shorts/([\w-]+)", youtube_url)
         if match:
             video_id = match.group(1)
             # Use YouTube's medium quality thumbnail for screenshots
