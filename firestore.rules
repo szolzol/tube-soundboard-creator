@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users can read/write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Dashboard access rules
+    match /dashboards/{dashboardId} {
+      // Owners can read/write their own dashboards
+      allow read, write: if request.auth != null && 
+        resource.data.ownerId == request.auth.uid;
+      
+      // Anyone can read public dashboards
+      allow read: if resource.data.visibility == "public";
+      
+      // For new documents, check if the creator is authenticated
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.ownerId;
+    }
+    
+    // Sounds access rules
+    match /sounds/{soundId} {
+      // Owners can read/write their own sounds
+      allow read, write: if request.auth != null && 
+        resource.data.ownerId == request.auth.uid;
+      
+      // Anyone can read sounds from public dashboards
+      allow read: if exists(/databases/$(database)/documents/dashboards/$(resource.data.dashboardId)) &&
+        get(/databases/$(database)/documents/dashboards/$(resource.data.dashboardId)).data.visibility == "public";
+      
+      // For new documents, check if the creator is authenticated
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.ownerId;
+    }
+    
+    // Public dashboards are readable by anyone with the link
+    match /publicDashboards/{publicId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Analytics - only the system can write, users can read their own
+    match /analytics/{analyticsId} {
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow write: if request.auth != null;
+    }
+    
+    // Test collection - allow authenticated users to write for debugging
+    match /test/{testId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

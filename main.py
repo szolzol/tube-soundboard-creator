@@ -289,6 +289,7 @@ def download_file(file_id: str):
 @app.get("/thumbnail/{file_id}")
 def get_thumbnail(file_id: str):
     from fastapi.responses import RedirectResponse
+    import requests
     
     file = files.get(file_id)
     if not file:
@@ -308,15 +309,32 @@ def get_thumbnail(file_id: str):
             match = re.search(r"/shorts/([\w-]+)", youtube_url)
         if match:
             video_id = match.group(1)
-            # Use YouTube's thumbnail service - redirect directly to the image
-            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
-            return RedirectResponse(url=thumbnail_url)
+            
+            # Try multiple thumbnail qualities in order of preference
+            thumbnail_options = [
+                f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg",  # 1280x720
+                f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",     # 480x360
+                f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",     # 320x180
+                f"https://img.youtube.com/vi/{video_id}/sddefault.jpg",     # 640x480
+                f"https://img.youtube.com/vi/{video_id}/default.jpg"        # 120x90
+            ]
+            
+            # Test each thumbnail URL and return the first working one
+            for thumbnail_url in thumbnail_options:
+                try:
+                    # Quick HEAD request to check if thumbnail exists
+                    response = requests.head(thumbnail_url, timeout=5)
+                    if response.status_code == 200:
+                        return RedirectResponse(url=thumbnail_url)
+                except:
+                    continue
     
     raise HTTPException(status_code=404, detail="Thumbnail not available")
 
 @app.get("/screenshot/{file_id}")
 def get_screenshot(file_id: str):
     from fastapi.responses import RedirectResponse
+    import requests
     
     file = files.get(file_id)
     if not file:
@@ -336,9 +354,25 @@ def get_screenshot(file_id: str):
             match = re.search(r"/shorts/([\w-]+)", youtube_url)
         if match:
             video_id = match.group(1)
-            # Use YouTube's medium quality thumbnail for screenshots
-            screenshot_url = f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg"
-            return RedirectResponse(url=screenshot_url)
+            
+            # Try multiple screenshot/thumbnail qualities in different order for variety
+            screenshot_options = [
+                f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",     # 320x180 - good for screenshots
+                f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",     # 480x360
+                f"https://img.youtube.com/vi/{video_id}/sddefault.jpg",     # 640x480
+                f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg", # 1280x720
+                f"https://img.youtube.com/vi/{video_id}/default.jpg"        # 120x90
+            ]
+            
+            # Test each screenshot URL and return the first working one
+            for screenshot_url in screenshot_options:
+                try:
+                    # Quick HEAD request to check if thumbnail exists
+                    response = requests.head(screenshot_url, timeout=5)
+                    if response.status_code == 200:
+                        return RedirectResponse(url=screenshot_url)
+                except:
+                    continue
     
     raise HTTPException(status_code=404, detail="Screenshot not available")
 
