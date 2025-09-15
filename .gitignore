@@ -3,6 +3,14 @@ archive/
 
 # Output folder for extracted audio
 output/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
 # Byte-compiled / optimized / DLL files
 venv/
 ENV/
