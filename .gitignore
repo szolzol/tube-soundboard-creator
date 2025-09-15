@@ -9,7 +9,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# package-lock.json  # Keep package-lock.json for Vercel deployment
 
 # Byte-compiled / optimized / DLL files
 venv/

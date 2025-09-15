@@ -5,19 +5,21 @@
 
 # Tube Soundboard Creator
 
-YouTube Audio Extraction Agent & Soundboard Web App
+YouTube Audio Extraction Agent & Soundboard Web App - **Node.js Implementation**
 
 ## Features
 
 - Extract audio segments from YouTube videos based on any time interval
-- Supported formats: MP3, WAV
+- Supported formats: MP3, WAV  
 - Thumbnail and screenshot extraction (YouTube video thumbnails)
-- Persistent sound metadata (coming soon: SQLite or cloud DB)
-- REST API (FastAPI, hosted on Railway):
+- Enhanced bot detection avoidance using ytdl-core
+- REST API (Node.js + Express, hosted on Vercel):
+  - GET `/health` – API health check
+  - POST `/video-info` – Get video metadata and available formats
   - POST `/extract` – Extract a single segment
   - POST `/batch` – Extract multiple segments in one call
   - GET `/status/{job_id}` – Check progress/status of a job
-  - GET `/download/{file_id}` – Download finished audio file
+  - GET `/debug/version` – Get ytdl-core version info
   - GET `/thumbnail/{file_id}` – Get YouTube thumbnail for a sound (redirects to image)
   - WebSocket `/ws/progress/{job_id}` – Real-time progress updates
   - POST `/video-info` – Get YouTube video title/duration/thumbnail

@@ -22,44 +22,10 @@ app.use((req, res, next) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "healthy",
-    service: "tube-soundboard-api",
+    service: "tube-soundboard-node-api",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
-    extraction_method: "ytdl-core",
   });
-});
-
-// Debug endpoint to check deployment version
-app.get("/debug/version", (req, res) => {
-  try {
-    const { execSync } = require("child_process");
-    let gitHash = "unknown";
-
-    try {
-      gitHash = execSync("git rev-parse HEAD", {
-        encoding: "utf8",
-        timeout: 5000,
-      })
-        .trim()
-        .substring(0, 8);
-    } catch (gitError) {
-      console.log("Git command failed:", gitError.message);
-    }
-
-    res.json({
-      git_commit: gitHash,
-      node_version: process.version,
-      working_directory: process.cwd(),
-      deployment_timestamp: new Date().toISOString(),
-      extraction_method: "ytdl-core",
-      ytdl_version: require("@distube/ytdl-core/package.json").version,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-      extraction_method: "ytdl-core",
-    });
-  }
 });
 
 // Video info endpoint (equivalent to Python /video-info)
@@ -158,8 +124,9 @@ app.post("/extract", async (req, res) => {
       });
     }
 
-    // Return direct stream URL and metadata
+    // For now, return the direct stream URL and metadata
     // Client can handle time-based extraction using Web Audio API
+    // or we can integrate ffmpeg.wasm later
     const response = {
       audio_url: audioFormat.url,
       container: audioFormat.container,
@@ -270,7 +237,7 @@ app.post("/batch", async (req, res) => {
 // Status endpoint
 app.get("/status", (req, res) => {
   res.json({
-    service: "tube-soundboard-api",
+    service: "tube-soundboard-node-api",
     status: "running",
     version: "1.0.0",
     extraction_method: "ytdl-core",
@@ -282,56 +249,6 @@ app.get("/status", (req, res) => {
     ],
     timestamp: new Date().toISOString(),
   });
-});
-
-// Debug endpoint to test extract endpoint
-app.get("/debug/test-extract", async (req, res) => {
-  try {
-    console.log("Testing extract endpoint...");
-
-    // Test with a short clip from Rick Astley
-    const testResult = await new Promise((resolve) => {
-      const testReq = {
-        body: {
-          youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          start_time: "1",
-          end_time: "3",
-          format: "mp3",
-        },
-      };
-
-      const testRes = {
-        json: (data) => resolve(data),
-        status: (code) => ({
-          json: (data) => resolve({ status_code: code, ...data }),
-        }),
-      };
-
-      // Simulate calling the extract endpoint
-      app._router.stack
-        .find(
-          (layer) =>
-            layer.route &&
-            layer.route.path === "/extract" &&
-            layer.route.methods.post
-        )
-        .route.stack[0].handle(testReq, testRes);
-    });
-
-    res.json({
-      test_successful: testResult.success || false,
-      result_type: typeof testResult,
-      result_keys: Object.keys(testResult),
-      extraction_method: testResult.extraction_method || "unknown",
-      has_audio_url: !!testResult.audio_url,
-    });
-  } catch (error) {
-    res.json({
-      error: error.message,
-      error_type: error.constructor.name,
-      test_successful: false,
-    });
-  }
 });
 
 // Error handling middleware
@@ -351,8 +268,6 @@ app.use((req, res) => {
     available_endpoints: [
       "GET /health",
       "GET /status",
-      "GET /debug/version",
-      "GET /debug/test-extract",
       "POST /video-info",
       "POST /extract",
       "POST /batch",
@@ -361,21 +276,19 @@ app.use((req, res) => {
 });
 
 // Start server
-if (require.main === module) {
-  app
-    .listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Tube Soundboard Node.js API running on port ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/health`);
-      console.log(`🎵 Extraction method: ytdl-core`);
-      console.log(`⏰ Started at: ${new Date().toISOString()}`);
-      console.log(`🔗 Server bound to: 0.0.0.0:${PORT}`);
-    })
-    .on("error", (err) => {
-      console.error("❌ Server error:", err);
-      if (err.code === "EADDRINUSE") {
-        console.error(`❌ Port ${PORT} is already in use`);
-      }
-    });
-}
+app
+  .listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Tube Soundboard Node.js API running on port ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+    console.log(`🎵 Extraction method: ytdl-core`);
+    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+    console.log(`🔗 Server bound to: 0.0.0.0:${PORT}`);
+  })
+  .on("error", (err) => {
+    console.error("❌ Server error:", err);
+    if (err.code === "EADDRINUSE") {
+      console.error(`❌ Port ${PORT} is already in use`);
+    }
+  });
 
 module.exports = app;
