@@ -28,6 +28,57 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Enhanced ytdl-core configuration for better bot detection avoidance
+const ytdlOptions = {
+  requestOptions: {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Accept-Encoding': 'gzip, deflate',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+    }
+  },
+  // Additional options for bypassing restrictions
+  lang: 'en',
+  format: 'json',
+  // Use IPv6 when available to bypass some rate limits
+  IPv6Block: '2001:2::/48',
+};
+
+// Retry function for handling temporary bot detection
+async function getVideoInfoWithRetry(youtube_url, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${maxRetries} for ${youtube_url}`);
+      
+      // Add random delay between retries to avoid rate limiting
+      if (attempt > 1) {
+        const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      const info = await ytdl.getInfo(youtube_url, ytdlOptions);
+      return info;
+    } catch (error) {
+      console.log(`Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // If it's a bot detection error, try with different options
+      if (error.message.includes('bot') || error.message.includes('Sign in')) {
+        // Modify user agent for next attempt
+        ytdlOptions.requestOptions.headers['User-Agent'] = 
+          `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${90 + attempt}.0.${4000 + attempt * 100}.124 Safari/537.36`;
+      }
+    }
+  }
+}
+
 // Video info endpoint (equivalent to Python /video-info)
 app.post("/video-info", async (req, res) => {
   try {
@@ -42,8 +93,8 @@ app.post("/video-info", async (req, res) => {
 
     console.log(`Getting video info for: ${youtube_url}`);
 
-    // Get video info using ytdl-core
-    const info = await ytdl.getInfo(youtube_url);
+    // Get video info using ytdl-core with retry logic
+    const info = await getVideoInfoWithRetry(youtube_url);
 
     // Get audio formats
     const audioFormats = ytdl.filterFormats(info.formats, "audioonly");
@@ -108,8 +159,8 @@ app.post("/extract", async (req, res) => {
       `Extracting audio: ${youtube_url} (${start_time}-${end_time}) -> ${format}`
     );
 
-    // Get video info
-    const info = await ytdl.getInfo(youtube_url);
+    // Get video info with retry logic
+    const info = await getVideoInfoWithRetry(youtube_url);
 
     // Get best audio format
     const audioFormat = ytdl.chooseFormat(info.formats, {
@@ -179,7 +230,7 @@ app.post("/batch", async (req, res) => {
           continue;
         }
 
-        const info = await ytdl.getInfo(youtube_url);
+        const info = await getVideoInfoWithRetry(youtube_url);
         const audioFormat = ytdl.chooseFormat(info.formats, {
           quality: "highestaudio",
           filter: "audioonly",
