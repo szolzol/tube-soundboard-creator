@@ -44,8 +44,6 @@ const ytdlOptions = {
   // Additional options for bypassing restrictions
   lang: 'en',
   format: 'json',
-  // Use IPv6 when available to bypass some rate limits
-  IPv6Block: '2001:2::/48',
 };
 
 // Retry function for handling temporary bot detection
