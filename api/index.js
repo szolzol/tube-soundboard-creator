@@ -1,8 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const ytdl = require("@distube/ytdl-core");
+const os = require("os");
+const path = require("path");
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Configure temp directory for serverless environment
+const tempDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+process.env.YTDL_NO_UPDATE = '1'; // Disable auto-updates in serverless env
 
 // Middleware
 app.use(cors());
@@ -44,6 +51,8 @@ const ytdlOptions = {
   // Additional options for bypassing restrictions
   lang: 'en',
   format: 'json',
+  // Disable file caching for serverless environment
+  noCache: true,
 };
 
 // Retry function for handling temporary bot detection
