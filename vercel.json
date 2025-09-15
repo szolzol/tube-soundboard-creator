@@ -2,28 +2,18 @@
     "version": 2,
     "builds": [
         {
-            "src": "index.js",
-            "use": "@vercel/node",
-            "config": {
-                "maxLambdaSize": "50mb"
-            }
+            "src": "api/index.js",
+            "use": "@vercel/node"
         }
     ],
     "routes": [
         {
+            "src": "/api/(.*)",
+            "dest": "/api/index.js"
+        },
+        {
             "src": "/(.*)",
-            "dest": "index.js"
+            "dest": "/api/index.js"
         }
-    ],
-    "functions": {
-        "index.js": {
-            "maxDuration": 30
-        }
-    },
-    "env": {
-        "NODE_ENV": "production"
-    },
-    "installCommand": "npm install",
-    "buildCommand": "echo 'No build needed'",
-    "outputDirectory": "."
+    ]
 }
