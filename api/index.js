@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const ytdl = require("@distube/ytdl-core");
+const ytdl = require("ytdl-core");
 const os = require("os");
 const path = require("path");
 
@@ -56,14 +56,14 @@ const ytdlOptions = {
 };
 
 // Retry function for handling temporary bot detection
-async function getVideoInfoWithRetry(youtube_url, maxRetries = 3) {
+async function getVideoInfoWithRetry(youtube_url, maxRetries = 2) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Attempt ${attempt}/${maxRetries} for ${youtube_url}`);
       
       // Add random delay between retries to avoid rate limiting
       if (attempt > 1) {
-        const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+        const delay = Math.random() * 1000 + 500; // 0.5-1.5 seconds
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
@@ -71,6 +71,11 @@ async function getVideoInfoWithRetry(youtube_url, maxRetries = 3) {
       return info;
     } catch (error) {
       console.log(`Attempt ${attempt} failed:`, error.message);
+      
+      // Handle serverless filesystem errors
+      if (error.message.includes('EROFS') || error.message.includes('read-only file system')) {
+        throw new Error('Serverless environment limitation: This video requires local file processing. Please try a different video or use the local development version.');
+      }
       
       if (attempt === maxRetries) {
         throw error;

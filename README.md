@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="tubesoundboard_logo.png" alt="Tube Soundboard Creator Logo" style="height:64px; background:transparent;" />
 </p>
@@ -10,7 +9,7 @@ YouTube Audio Extraction Agent & Soundboard Web App - **Node.js Implementation**
 ## Features
 
 - Extract audio segments from YouTube videos based on any time interval
-- Supported formats: MP3, WAV  
+- Supported formats: MP3, WAV
 - Thumbnail and screenshot extraction (YouTube video thumbnails)
 - Enhanced bot detection avoidance using ytdl-core
 - REST API (Node.js + Express, hosted on Vercel):
