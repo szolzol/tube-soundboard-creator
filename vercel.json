@@ -3,7 +3,10 @@
     "builds": [
         {
             "src": "index.js",
-            "use": "@vercel/node"
+            "use": "@vercel/node",
+            "config": {
+                "maxLambdaSize": "50mb"
+            }
         }
     ],
     "routes": [
@@ -19,5 +22,8 @@
     },
     "env": {
         "NODE_ENV": "production"
-    }
+    },
+    "installCommand": "npm install",
+    "buildCommand": "echo 'No build needed'",
+    "outputDirectory": "."
 }
